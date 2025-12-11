@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { loginApi } from '../../service/auth.service';
-import getErrorMessage from '../../utils/getAxiosErrorMessage';
+import { getErrorMessage, getResponseData } from '../../utils/axios.utils';
 
 export function useLogin() {
   // const navigate = useNavigate();
@@ -10,9 +10,14 @@ export function useLogin() {
   const { isPending, mutate: login } = useMutation({
     mutationFn: ({ email, password }) => loginApi({ email, password }),
 
-    onSuccess: (user) => {
-      queryClient.setQueryData(['user'], user.user);
+    onSuccess: (response) => {
+      const {
+        message,
+        data: { token, user },
+      } = getResponseData(response);
+      queryClient.setQueryData(['user'], { token: token, user: user });
       // navigate('/dashboard', { replace: true });
+      toast.success(message);
     },
 
     onError: (error) => {
