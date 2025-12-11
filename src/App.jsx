@@ -1,14 +1,15 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
-import ProtectedRoute from './components/ProtectedRoute';
+// import ProtectedRoute from './components/ProtectedRoute';
 import CreateCampaignForm from './features/dashboard/CreateCampaignForm';
 import RecordAssessmentForm from './features/dashboard/RecordAssessmentForm';
-import DashboardLayout from './layouts/DashboardLayout';
+import DashboardLayout from './pages/Account';
 import AssessmentsPage from './pages/AssessmentsPage';
 import CampaignsPage from './pages/CampaignsPage';
 import DashboardPage from './pages/DashboardPage';
 import IndicatorsPage from './pages/IndicatorsPage';
 import LoginPage from './pages/LoginPage';
+import Account from './pages/Account';
 
 function App() {
   return (
@@ -21,9 +22,9 @@ function App() {
       <Route
         path='/'
         element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
+          // <ProtectedRoute>
+          <Account />
+          // </ProtectedRoute>
         }
       >
         <Route index element={<Navigate replace to='dashboard' />} />
@@ -41,18 +42,18 @@ function App() {
         <Route
           path='campaigns/create'
           element={
-            <ProtectedRoute requiredRoles='admin'>
-              <div className='max-w-4xl'>
-                <CreateCampaignForm />
-              </div>
-            </ProtectedRoute>
+            // <ProtectedRoute requiredRoles='admin'>
+            <div className='max-w-4xl'>
+              <CreateCampaignForm />
+            </div>
+            // </ProtectedRoute>
           }
         />
         <Route path='indicators' element={<IndicatorsPage />} />
       </Route>
 
       {/* Fallback */}
-      <Route path='*' element={<Navigate to='/dashboard' replace />} />
+      <Route path='*' element={<Navigate to='/overview' replace />} />
     </Routes>
   );
 }
