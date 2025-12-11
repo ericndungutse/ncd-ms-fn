@@ -1,0 +1,485 @@
+{
+	"info": {
+		"_postman_id": "91c6a7c2-b9f2-4e73-a5df-e3f1d6ba8a57",
+		"name": "NCDC MS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50658671",
+		"_collection_link": "https://ncdc-ms.postman.co/workspace/Team-Workspace~7d96e4c1-28f2-432d-83a1-3e1299ea302f/collection/50658671-91c6a7c2-b9f2-4e73-a5df-e3f1d6ba8a57?action=share&source=collection_link&creator=50658671"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"res = pm.response.json();\r",
+									"\r",
+									"pm.environment.set(\"access_token\", res.data.token);\r",
+									"\r",
+									"// Test 1: Check if the response status code is 200\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// {\r\n//     \"identifier\": \"admin@example.com\",\r\n//     \"password\": \"Test@123\"\r\n// }\r\n{\r\n    \"identifier\": \"volunteer2@example.com\",\r\n    \"password\": \"Test@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Login",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"identifier\": \"volunteer2@example.com\",\r\n    \"password\": \"Test@123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:3000/api/v1/auth/login",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [
+								{
+									"expires": "Invalid Date",
+									"domain": "",
+									"path": ""
+								}
+							],
+							"body": "{\n  \"personId\": \"PERSON_ID_123\",\n  \"measuredAt\": \"2025-12-08T10:00:00Z\",\n  \"readings\": [\n    {\n      \"indicatorName\": \"Hypertension\",\n      \"values\": [\n        { \"type\": \"Systolic Blood Pressure\", \"unit\": \"mmHg\", \"value\": 135, \"label\": \"Elevated (Pre-hypertension)\" },\n        { \"type\": \"Diastolic Blood Pressure\", \"unit\": \"mmHg\", \"value\": 85, \"label\": \"Elevated (Pre-hypertension)\" }\n      ]\n    },\n    {\n      \"indicatorName\": \"Diabetes\",\n      \"values\": [\n        { \"type\": \"Random Blood Glucose\", \"unit\": \"mg/dL\", \"value\": 150, \"label\": \"Pre-diabetes\" }\n      ]\n    },\n    {\n      \"indicatorName\": \"BMI\",\n      \"values\": [\n        { \"type\": \"Body Mass Index\", \"unit\": \"kg/m²\", \"value\": 28.3, \"label\": \"Overweight\" }\n      ]\n    }\n  ]\n}\n"
+						}
+					]
+				},
+				{
+					"name": "Register User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"new.user1@example.com\",\r\n  \"profile\": {\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\",\r\n    \"phoneNumber\": \"0788001122\",\r\n    \"nationalIdNumber\": \"1199880012345678\",\r\n    \"dateOfBirth\": \"\",\r\n    \"address\": {\r\n      \"province\": \"Kigali\",\r\n      \"district\": \"Gasabo\",\r\n      \"sector\": \"Kimironko\",\r\n      \"cell\": \"Bibare\",\r\n      \"village\": \"Gashuru\"\r\n    }\r\n  }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"register"
+							]
+						},
+						"description": "# User Registration Endpoint\n\n## Overview\n\nThis endpoint allows new users to register in the system by providing their email, password, role assignments, and comprehensive profile information including personal details and address.\n\n## Authentication\n\nNo authentication required - this is a public endpoint for new user registration.\n\n## Request Body Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| `email` | string | Yes | User's email address (must be valid email format) |\n| `password` | string | Yes | User's password (must meet security requirements) |\n| `roles` | array | Yes | Array of role strings assigned to the user (e.g., \\[\"user\", \"admin\"\\]) |\n| `profile` | object | Yes | User's profile information |\n\n### Profile Object Fields\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| `firstName` | string | Yes | User's first name |\n| `lastName` | string | Yes | User's last name |\n| `phoneNumber` | string | Yes | User's phone number (format: 0788001122) |\n| `nationalIdNumber` | string | Yes | National ID number (16 digits) |\n| `address` | object | Yes | User's residential address |\n\n### Address Object Fields\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| `province` | string | Yes | Province name (e.g., \"Kigali\") |\n| `district` | string | Yes | District name (e.g., \"Gasabo\") |\n| `sector` | string | Yes | Sector name (e.g., \"Kimironko\") |\n| `cell` | string | Yes | Cell name (e.g., \"Bibare\") |\n| `village` | string | Yes | Village name (e.g., \"Gashuru\") |\n\n## Request Example\n\n``` json\n{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"roles\": [\"user\"],\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phoneNumber\": \"0788001122\",\n    \"nationalIdNumber\": \"1199880012345678\",\n    \"address\": {\n      \"province\": \"Kigali\",\n      \"district\": \"Gasabo\",\n      \"sector\": \"Kimironko\",\n      \"cell\": \"Bibare\",\n      \"village\": \"Gashuru\"\n    }\n  }\n}\n\n ```\n\n## Response Codes\n\n| Status Code | Description |\n| --- | --- |\n| `201 Created` | User successfully registered |\n| `400 Bad Request` | Invalid request body or validation errors |\n| `409 Conflict` | User with this email already exists |\n| `422 Unprocessable Entity` | Invalid data format or missing required fields |\n| `500 Internal Server Error` | Server error during registration |\n\n## Example Use Cases\n\n1. **Standard User Registration**: Register a new user with basic \"user\" role for accessing the platform\n    \n2. **Multi-Role Assignment**: Register users with multiple roles (e.g., \\[\"user\", \"moderator\"\\])\n    \n3. **Complete Profile Setup**: Capture comprehensive user information including Rwanda-specific address details during registration\n    \n\n## Important Notes\n\n### Validation Requirements\n\n- **Email**: Must be a valid email format and unique in the system\n    \n- **Password**: Should meet minimum security requirements (typically 8+ characters with mix of uppercase, lowercase, numbers, and special characters)\n    \n- **Phone Number**: Must follow the local format (10 digits starting with 0)\n    \n- **National ID Number**: Must be exactly 16 digits\n    \n- **Roles**: Must be valid role identifiers recognized by the system\n    \n- **Address Fields**: All address components (province, district, sector, cell, village) are required and should match Rwanda's administrative divisions\n    \n\n### Best Practices\n\n- Validate email format on client-side before submission\n    \n- Ensure password meets security requirements before sending\n    \n- Verify national ID number format (16 digits)\n    \n- Use proper Rwanda administrative division names for address fields\n    \n- Handle duplicate email errors gracefully in your application"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"email\": \"john.doe@example.com\",\r\n  \"password\": \"StrongPass123!\",\r\n  \"roles\": [\"user\"],\r\n  \"profile\": {\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\",\r\n    \"phoneNumber\": \"0788001122\",\r\n    \"nationalIdNumber\": \"1199880012345678\",\r\n    \"address\": {\r\n      \"province\": \"Kigali\",\r\n      \"district\": \"Gasabo\",\r\n      \"sector\": \"Kimironko\",\r\n      \"cell\": \"Bibare\",\r\n      \"village\": \"Gashuru\"\r\n    }\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:3001/api/v1/users/register",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3001",
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"register"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Medical Assessment",
+			"item": [
+				{
+					"name": "Record Assessment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"profile\": \"693975a8e1438ef4beea7c24\",\r\n    \"patientNumber\": \"7\",\r\n    \"ncdcIndicatorId\": \"69370e2c21c4a88c8e35b85c\",\r\n    \"readings\": {\r\n        \"Systolic Blood Pressure\": 165,\r\n        \"Diastolic Blood Pressure\": 102\r\n    },\r\n    \"screeningCampaignId\": \"69397759e1438ef4beea7c30\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/assessments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"assessments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Assessments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/assessments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"assessments"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ScreeningCampaign",
+			"item": [
+				{
+					"name": "Create Screening Campaign",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"NCDC Screening Campaign Nyarugenge District\",\r\n  \"description\": \"A district-wide outreach program for NCD screening.\",\r\n  \"startDate\": \"2025-02-08\",\r\n  \"endDate\": \"2025-02-13\",\r\n  \"startTime\": \"08:00\",\r\n  \"endTime\": \"17:00\",\r\n  \"location\": \"Kigali University Teaching Hospital (CHUK)\",\r\n  \"address\": {\r\n    \"province\": \"Kigali City\",\r\n    \"district\": \"Nyarugenge\",\r\n    \"sector\": \"Muhima\",\r\n    \"cell\": \"Kiyovu\",\r\n    \"village\": \"Kiyovu Village\"\r\n  }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/screening-campaigns",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"screening-campaigns"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Create Screening Campaign",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"title\": \"NCDC Screening Campaign Nyarugenge District\",\r\n  \"description\": \"A district-wide outreach program for NCD screening.\",\r\n  \"startDate\": \"2025-02-08\",\r\n  \"endDate\": \"2025-02-13\",\r\n  \"startTime\": \"08:00\",\r\n  \"endTime\": \"17:00\",\r\n  \"location\": \"Kigali University Teaching Hospital (CHUK)\",\r\n  \"address\": {\r\n    \"province\": \"Kigali City\",\r\n    \"district\": \"Nyarugenge\",\r\n    \"sector\": \"Muhima\",\r\n    \"cell\": \"Kiyovu\",\r\n    \"village\": \"Kiyovu Village\"\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/screening-campaigns",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"screening-campaigns"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [
+								{
+									"expires": "Invalid Date",
+									"domain": "",
+									"path": ""
+								}
+							],
+							"body": "{\n    \"title\": \"NCDC Screening Campaign Nyarugenge District\",\n    \"description\": \"A district-wide outreach program for NCD screening.\",\n    \"startDate\": \"2025-02-08\",\n    \"endDate\": \"2025-02-13\",\n    \"startTime\": \"08:00\",\n    \"endTime\": \"17:00\",\n    \"location\": \"Kigali University Teaching Hospital (CHUK)\",\n    \"address\": {\n        \"province\": \"Kigali City\",\n        \"district\": \"Nyarugenge\",\n        \"sector\": \"Muhima\",\n        \"cell\": \"Kiyovu\",\n        \"village\": \"Kiyovu Village\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get All Screening Campains",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/screening-campaigns?fields=title,startDate&page=3&limit=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"screening-campaigns"
+							],
+							"query": [
+								{
+									"key": "fields",
+									"value": "title,startDate"
+								},
+								{
+									"key": "page",
+									"value": "3"
+								},
+								{
+									"key": "sort",
+									"value": "startDate",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get All Screening Campains",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/screening-campaigns",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"screening-campaigns"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "title",
+											"disabled": true
+										},
+										{
+											"key": "page",
+											"value": "1",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [
+								{
+									"expires": "Invalid Date",
+									"domain": "",
+									"path": ""
+								}
+							],
+							"body": "{\r\n    \"status\": \"success\",\r\n    \"message\": \"Screening campaigns retrieved successfully\",\r\n    \"data\": {\r\n        \"campaigns\": [\r\n            {\r\n                \"_id\": \"69393949040f661bf78b8e51\",\r\n                \"title\": \"NCDC Screening Campaign Nyarugenge District\",\r\n                \"description\": \"A district-wide outreach program for NCD screening.\",\r\n                \"status\": \"planned\",\r\n                \"startDate\": \"2025-02-01T00:00:00.000Z\",\r\n                \"endDate\": \"2025-02-07T00:00:00.000Z\",\r\n                \"startTime\": \"08:00\",\r\n                \"endTime\": \"17:00\",\r\n                \"address\": {\r\n                    \"province\": \"Kigali City\",\r\n                    \"district\": \"Nyarugenge\",\r\n                    \"sector\": \"Muhima\",\r\n                    \"cell\": \"Kiyovu\",\r\n                    \"village\": \"Kiyovu Village\"\r\n                },\r\n                \"location\": \"Kigali University Teaching Hospital (CHUK)\",\r\n                \"createdAt\": \"2025-12-10T09:11:37.853Z\",\r\n                \"updatedAt\": \"2025-12-10T09:11:37.853Z\"\r\n            }\r\n        ]\r\n    }\r\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "NCDC Indicators",
+			"item": [
+				{
+					"name": "Indicators",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"personId\": \"6938260070f5104644ced222\",\r\n    \"ncdcIndicatorId\": \"69370e2c21c4a88c8e35b85c\",\r\n    \"readings\": {\r\n        \"Systolic Blood Pressure\": 165,\r\n        \"Diastolic Blood Pressure\": 102\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/indicators",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"indicators"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
