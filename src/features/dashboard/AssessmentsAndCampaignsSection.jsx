@@ -77,11 +77,10 @@ export default function AssessmentsAndCampaignsSection() {
   return (
     <section className='grid gap-6 xl:grid-cols-[1.5fr_1fr]'>
       {/* Recent assessments */}
-      <div className='space-y-4 rounded-lg border border-slate-200 bg-white p-6'>
+      <div className='space-y-4 surface-card p-5 border border-slate-200'>
         <div className='flex items-center justify-between'>
           <div>
-            <p className='text-sm text-slate-500'>Latest records</p>
-            <h3 className='text-lg font-semibold text-slate-900'>Recent assessments</h3>
+            <h3 className='text-lg font-semibold text-slate-900 mb-1'>Recent assessments</h3>
           </div>
           <Badge>From /api/v1/assessments</Badge>
         </div>
@@ -98,17 +97,16 @@ export default function AssessmentsAndCampaignsSection() {
       </div>
 
       {/* Campaigns */}
-      <div className='space-y-4 rounded-lg border border-slate-200 bg-white p-6'>
+      <div className='space-y-4 surface-card p-5 border border-slate-200'>
         <div className='flex items-center justify-between'>
           <div>
-            <p className='text-sm text-slate-500'>Field operations</p>
-            <h3 className='text-lg font-semibold text-slate-900'>Screening campaigns</h3>
+            <h3 className='text-lg font-semibold text-slate-900 mb-1'>Screening campaigns</h3>
           </div>
           <Badge>From /api/v1/screening-campaigns</Badge>
         </div>
         <div className='space-y-3'>
           {campaigns.map((campaign) => (
-            <div key={campaign.title} className='rounded-lg border border-slate-200 bg-slate-50 px-4 py-3'>
+            <div key={campaign.title} className='rounded border border-slate-200 bg-white px-4 py-3'>
               <div className='flex items-center justify-between text-sm font-semibold text-slate-900'>
                 <p className='truncate'>{campaign.title}</p>
                 <span

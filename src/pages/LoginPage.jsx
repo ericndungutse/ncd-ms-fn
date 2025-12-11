@@ -19,15 +19,17 @@ export default function LoginPage() {
   });
 
   return (
-    <div className='min-h-screen bg-linear-to-br from-slate-900 to-slate-800 flex'>
-      <BrandingSection />
+    <div className='min-h-screen flex bg-slate-50'>
+      <div className='max-w-6xl w-full mx-auto flex flex-col md:flex-row items-center justify-center gap-10 px-6 py-12'>
+        <BrandingSection />
 
-      <LoginFormContainer>
-        <SignInHeader />
-        <LoginForm register={register} handleSubmit={handleSubmit} errors={errors} />
-        <FooterLinks />
-        <Copyright />
-      </LoginFormContainer>
+        <LoginFormContainer>
+          <SignInHeader />
+          <LoginForm register={register} handleSubmit={handleSubmit} errors={errors} />
+          <FooterLinks />
+          <Copyright />
+        </LoginFormContainer>
+      </div>
     </div>
   );
 }

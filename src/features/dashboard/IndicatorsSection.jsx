@@ -24,11 +24,11 @@ export default function IndicatorsSection() {
   ];
 
   return (
-    <section className='space-y-4 rounded-lg border border-slate-200 bg-white p-6'>
+    <section className='space-y-4 surface-card p-5 border border-slate-200'>
       <div className='flex items-center justify-between'>
         <div>
-          <p className='text-sm text-slate-500'>Health metrics and tests</p>
-          <h3 className='text-lg font-semibold text-slate-900'>NCDC Indicators</h3>
+          <h3 className='text-lg font-semibold text-slate-900 mb-1'>NCDC Indicators</h3>
+          <p className='text-sm text-slate-500'>Reference values for field teams</p>
         </div>
         <Badge>From /api/v1/indicators</Badge>
       </div>

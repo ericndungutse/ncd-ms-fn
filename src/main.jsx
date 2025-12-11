@@ -22,29 +22,30 @@ createRoot(document.getElementById('root')).render(
         gutter={12}
         containerClassName='mt-4 mr-4'
         toastOptions={{
-          className: 'rounded-xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl shadow-black/40',
+          className:
+            'rounded-xl border border-slate-200 bg-white text-slate-900 shadow-lg shadow-sky-100/80 backdrop-blur-lg',
           style: {
-            padding: '12px 14px',
+            padding: '12px 16px',
             fontSize: '14px',
             lineHeight: '20px',
             fontWeight: 500,
           },
           success: {
             iconTheme: {
-              primary: '#14b8a6',
-              secondary: '#0f172a',
+              primary: '#0ea5e9',
+              secondary: '#e0f2fe',
             },
             style: {
-              borderColor: '#14b8a6',
+              borderColor: '#bae6fd',
             },
           },
           error: {
             iconTheme: {
               primary: '#f43f5e',
-              secondary: '#0f172a',
+              secondary: '#fee2e2',
             },
             style: {
-              borderColor: '#f43f5e',
+              borderColor: '#fecdd3',
             },
           },
         }}

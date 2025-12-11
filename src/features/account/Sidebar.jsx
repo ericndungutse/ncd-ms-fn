@@ -29,54 +29,78 @@ export default function Sidebar() {
     <aside
       className={`${
         sidebarOpen ? 'w-64' : 'w-20'
-      } sticky top-0 h-screen flex-col gap-6 overflow-y-auto border-r border-slate-200 bg-white p-6 transition-all duration-300 flex`}
+      } sticky top-0 h-screen flex-col gap-6 overflow-y-auto border-r border-slate-200 bg-white transition-all duration-300 flex`}
     >
-      <div className='flex items-center justify-between'>
-        <Link to='/overview' className='flex items-center gap-2'>
-          {sidebarOpen && <h1 className='text-xl font-bold text-slate-900'>NCDC MS</h1>}
+      <div className='flex items-center justify-between p-5'>
+        <Link to='/dashboard' className='flex items-center gap-2 group'>
+          {sidebarOpen ? (
+            <div className='flex items-center gap-3'>
+              <div className='w-9 h-9 bg-sky-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm'>
+                eR
+              </div>
+              <div>
+                <h1 className='text-lg font-semibold text-slate-900 tracking-tight'>eRINDE AI</h1>
+                {/* <p className='text-xs text-slate-500 leading-tight'>Management System</p> */}
+              </div>
+            </div>
+          ) : (
+            <div className='w-9 h-9 bg-sky-600 rounded-lg flex items-center justify-center text-white font-semibold text-xs'>
+              eR
+            </div>
+          )}
         </Link>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className='rounded-lg p-2 hover:bg-slate-100'
+          className='rounded-lg p-2 hover:bg-slate-50 transition-colors border border-slate-200 bg-white'
           aria-label='Toggle sidebar'
         >
-          {sidebarOpen ? <FiX className='h-5 w-5' /> : <FiMenu className='h-5 w-5' />}
+          {sidebarOpen ? <FiX className='h-5 w-5 text-slate-600' /> : <FiMenu className='h-5 w-5 text-slate-600' />}
         </button>
       </div>
 
-      <nav className='flex-1 space-y-2'>
+      <nav className='flex-1 space-y-1 px-3'>
         {visibleNavItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition ${
-              isActive(item.path)
-                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100'
-                : 'text-slate-600 hover:bg-slate-50'
+            aria-current={isActive(item.path) ? 'page' : undefined}
+            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              isActive(item.path) ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
             title={!sidebarOpen ? item.label : ''}
           >
-            <item.icon className='h-5 w-5 shrink-0' />
-            {sidebarOpen && <span>{item.label}</span>}
+            {isActive(item.path) && (
+              <span className='absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-600'></span>
+            )}
+            <div
+              className={`p-1.5 rounded transition-colors ${
+                isActive(item.path) ? 'bg-sky-100 text-sky-700' : 'text-slate-500 group-hover:text-slate-700'
+              }`}
+            >
+              <item.icon className='h-5 w-5 shrink-0' />
+            </div>
+            {sidebarOpen && <span className='transition-colors'>{item.label}</span>}
           </Link>
         ))}
       </nav>
 
-      <div className='space-y-3 border-t border-slate-100 pt-4'>
+      <div className='space-y-3 border-t border-slate-100 p-3'>
         {sidebarOpen && (
-          <div className='text-xs'>
-            {/* <p className='font-semibold text-slate-900'>{user?.profile?.firstName}</p>
-                 <p className='text-slate-500 capitalize'>{user?.role}</p> */}
+          <div className='text-xs px-3 py-2 rounded-lg bg-slate-50 border border-slate-100'>
+            <p className='font-semibold text-slate-900'>Healthy communities</p>
+            <p className='text-slate-500 capitalize'>NCDC screening toolkit</p>
           </div>
         )}
         <button
           onClick={handleLogout}
-          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition ${
+          className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors ${
             !sidebarOpen ? 'justify-center' : ''
           }`}
           title={!sidebarOpen ? 'Logout' : ''}
         >
-          <FiLogOut className='h-5 w-5 shrink-0' />
+          <div className='p-1.5 rounded transition-colors'>
+            <FiLogOut className='h-5 w-5 shrink-0' />
+          </div>
           {sidebarOpen && <span>Log Out</span>}
         </button>
       </div>

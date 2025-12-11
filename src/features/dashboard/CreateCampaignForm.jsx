@@ -1,6 +1,12 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
+import { useCreateCampaign } from '../screeningCampaign/campaigns.queries';
+import { getErrorMessage } from '../../utils/axios.utils';
+import FormButton from '../../ui/FormButton';
+import FormInput from '../../ui/FormInput';
+import FormGroup from '../../ui/FormGroup';
 
 const RWANDA_LOCATIONS = {
   'Kigali City': {
@@ -21,225 +27,186 @@ const RWANDA_LOCATIONS = {
 };
 
 export default function CreateCampaignForm() {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    startDate: '',
-    endDate: '',
-    startTime: '08:00',
-    endTime: '17:00',
-    location: '',
-    province: '',
-    district: '',
-    sector: '',
-    cell: '',
-    village: '',
-  });
-
-  const [submitted, setSubmitted] = useState(false);
-  const [districts, setDistricts] = useState([]);
-
-  const handleProvinceChange = (e) => {
-    const province = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      province,
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    reset,
+  } = useForm({
+    defaultValues: {
+      title: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+      startTime: '08:00',
+      endTime: '17:00',
+      location: '',
+      province: '',
       district: '',
       sector: '',
       cell: '',
       village: '',
-    }));
+    },
+  });
+
+  const { isPending, createCampaignMutation, error } = useCreateCampaign();
+  const [districts, setDistricts] = useState([]);
+
+  const handleProvinceChange = (e) => {
+    const province = e.target.value;
     setDistricts(RWANDA_LOCATIONS[province]?.districts || []);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const onSubmit = async (data) => {
+    // Transform data to match API payload structure
+    const payload = {
+      title: data.title,
+      description: data.description,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      location: data.location,
+      address: {
+        province: data.province,
+        district: data.district,
+        sector: data.sector,
+        cell: data.cell,
+        village: data.village,
+      },
+    };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Validation
-    if (!formData.title || !formData.startDate || !formData.endDate || !formData.province) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    if (new Date(formData.startDate) >= new Date(formData.endDate)) {
-      alert('End date must be after start date');
-      return;
-    }
-
-    // Simulate API call
-    console.log('Campaign created:', formData);
-
-    // Reset form
-    setSubmitted(true);
-    setTimeout(() => {
-      setFormData({
-        title: '',
-        description: '',
-        startDate: '',
-        endDate: '',
-        startTime: '08:00',
-        endTime: '17:00',
-        location: '',
-        province: '',
-        district: '',
-        sector: '',
-        cell: '',
-        village: '',
-      });
-      setDistricts([]);
-      setSubmitted(false);
-    }, 2000);
+    createCampaignMutation(payload);
   };
 
   return (
-    <div className='w-full space-y-4'>
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-3'>
-          <Link
-            to='/campaigns'
-            className='inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50'
-          >
-            <FiArrowLeft className='h-4 w-4' /> Back to Campaigns
-          </Link>
-          <span className='text-slate-400'>/</span>
-          <span className='text-sm font-semibold text-slate-700'>Create Campaign</span>
-        </div>
+    <div className='max-w-4xl mx-auto space-y-6 animate-fade-in'>
+      {/* Breadcrumb Navigation */}
+      <div className='flex items-center gap-3'>
+        <Link
+          to='/campaigns'
+          className='inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm hover:shadow'
+        >
+          <FiArrowLeft className='h-4 w-4' /> Back to Campaigns
+        </Link>
       </div>
 
-      <div className='rounded-lg border border-slate-200 bg-white p-6'>
+      {/* Form Container */}
+      <div className='rounded-lg border border-slate-200 bg-white p-6 shadow-sm'>
         <div className='mb-6'>
           <h2 className='text-2xl font-semibold text-slate-900'>Create Screening Campaign</h2>
-          <p className='mt-1 text-sm text-slate-500'>Plan and schedule a new NCD screening campaign</p>
+          <p className='mt-1 text-sm text-slate-600'>Plan and schedule a new NCD screening campaign</p>
         </div>
 
-        {submitted && (
-          <div className='mb-4 rounded-lg border border-teal-200 bg-teal-50 p-4 text-sm text-teal-700'>
-            ✓ Campaign created successfully!
+        {error && (
+          <div className='mb-6 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 font-medium'>
+            {getErrorMessage(error)}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className='space-y-4'>
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
           {/* Campaign Title */}
-          <div>
-            <label className='block text-sm font-semibold text-slate-900'>
-              Campaign Title
-              <span className='text-rose-500'>*</span>
-            </label>
-            <input
-              type='text'
-              name='title'
-              value={formData.title}
-              onChange={handleInputChange}
-              placeholder='e.g., NCDC Screening Campaign Nyarugenge District'
-              className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-            />
-          </div>
+          <FormInput
+            label='Campaign Title'
+            id='title'
+            type='text'
+            placeholder='e.g., NCDC Screening Campaign Nyarugenge District'
+            register={register}
+            registerOptions={{
+              required: 'Campaign title is required',
+              minLength: {
+                value: 3,
+                message: 'Title must be at least 3 characters',
+              },
+            }}
+            error={errors.title}
+          />
 
           {/* Description */}
-          <div>
-            <label className='block text-sm font-semibold text-slate-900'>Description</label>
+          <div className='group'>
+            <label
+              htmlFor='description'
+              className='block text-sm font-semibold text-slate-900 mb-2 transition-colors group-focus-within:text-sky-700'
+            >
+              Description
+            </label>
             <textarea
-              name='description'
-              value={formData.description}
-              onChange={handleInputChange}
+              {...register('description')}
+              id='description'
               placeholder='Describe the purpose and scope of this campaign...'
-              rows='3'
-              className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
+              rows='4'
+              className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 hover:shadow resize-none'
             />
           </div>
 
           {/* Dates */}
           <div className='grid gap-4 sm:grid-cols-2'>
-            <div>
-              <label className='block text-sm font-semibold text-slate-900'>
-                Start Date
-                <span className='text-rose-500'>*</span>
-              </label>
-              <input
-                type='date'
-                name='startDate'
-                value={formData.startDate}
-                onChange={handleInputChange}
-                className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-              />
-            </div>
+            <FormInput
+              label='Start Date'
+              id='startDate'
+              type='date'
+              register={register}
+              registerOptions={{
+                required: 'Start date is required',
+              }}
+              error={errors.startDate}
+            />
 
-            <div>
-              <label className='block text-sm font-semibold text-slate-900'>
-                End Date
-                <span className='text-rose-500'>*</span>
-              </label>
-              <input
-                type='date'
-                name='endDate'
-                value={formData.endDate}
-                onChange={handleInputChange}
-                className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-              />
-            </div>
+            <FormInput
+              label='End Date'
+              id='endDate'
+              type='date'
+              register={register}
+              registerOptions={{
+                required: 'End date is required',
+                validate: (value) => {
+                  const startDate = watch('startDate');
+                  return !startDate || new Date(value) > new Date(startDate) || 'End date must be after start date';
+                },
+              }}
+              error={errors.endDate}
+            />
           </div>
 
           {/* Times */}
           <div className='grid gap-4 sm:grid-cols-2'>
-            <div>
-              <label className='block text-sm font-semibold text-slate-900'>Start Time</label>
-              <input
-                type='time'
-                name='startTime'
-                value={formData.startTime}
-                onChange={handleInputChange}
-                className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-              />
-            </div>
+            <FormInput label='Start Time' id='startTime' type='time' register={register} error={errors.startTime} />
 
-            <div>
-              <label className='block text-sm font-semibold text-slate-900'>End Time</label>
-              <input
-                type='time'
-                name='endTime'
-                value={formData.endTime}
-                onChange={handleInputChange}
-                className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-              />
-            </div>
+            <FormInput label='End Time' id='endTime' type='time' register={register} error={errors.endTime} />
           </div>
 
           {/* Location Name */}
-          <div>
-            <label className='block text-sm font-semibold text-slate-900'>Location Name</label>
-            <input
-              type='text'
-              name='location'
-              value={formData.location}
-              onChange={handleInputChange}
-              placeholder='e.g., Kigali University Teaching Hospital (CHUK)'
-              className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-            />
-          </div>
+          <FormInput
+            label='Location Name'
+            id='location'
+            type='text'
+            placeholder='e.g., Kigali University Teaching Hospital (CHUK)'
+            register={register}
+            error={errors.location}
+          />
 
           {/* Address Section */}
-          <div className='space-y-3 rounded-lg bg-slate-50 p-4'>
+          <div className='space-y-4 rounded-lg bg-slate-50 border border-slate-200 p-5'>
             <h3 className='text-sm font-semibold text-slate-900'>Campaign Address</h3>
 
             {/* Province */}
             <div>
-              <label className='block text-sm font-semibold text-slate-900'>
+              <label htmlFor='province' className='block text-sm font-semibold text-slate-900 mb-2'>
                 Province
-                <span className='text-rose-500'>*</span>
+                <span className='text-rose-600 ml-1'>*</span>
               </label>
               <select
-                name='province'
-                value={formData.province}
-                onChange={handleProvinceChange}
-                className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
+                {...register('province', {
+                  required: 'Province is required',
+                  onChange: handleProvinceChange,
+                })}
+                id='province'
+                className={`w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm ${
+                  errors.province
+                    ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-100 focus:border-rose-500'
+                    : 'border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                }`}
               >
                 <option value=''>Select province</option>
                 {Object.keys(RWANDA_LOCATIONS).map((province) => (
@@ -248,17 +215,30 @@ export default function CreateCampaignForm() {
                   </option>
                 ))}
               </select>
+              {errors.province && (
+                <div className='flex items-center gap-2 mt-2' role='alert'>
+                  <svg className='w-4 h-4 text-rose-600 shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                    <path
+                      fillRule='evenodd'
+                      d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
+                      clipRule='evenodd'
+                    />
+                  </svg>
+                  <p className='text-rose-700 text-sm font-semibold'>{errors.province.message}</p>
+                </div>
+              )}
             </div>
 
             {/* District */}
             {districts.length > 0 && (
               <div>
-                <label className='block text-sm font-semibold text-slate-900'>District</label>
+                <label htmlFor='district' className='block text-sm font-semibold text-slate-900 mb-2'>
+                  District
+                </label>
                 <select
-                  name='district'
-                  value={formData.district}
-                  onChange={handleInputChange}
-                  className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
+                  {...register('district')}
+                  id='district'
+                  className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
                 >
                   <option value=''>Select district</option>
                   {districts.map((district) => (
@@ -271,73 +251,53 @@ export default function CreateCampaignForm() {
             )}
 
             {/* Sector */}
-            <div>
-              <label className='block text-sm font-semibold text-slate-900'>Sector</label>
-              <input
-                type='text'
-                name='sector'
-                value={formData.sector}
-                onChange={handleInputChange}
-                placeholder='e.g., Muhima'
-                className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-              />
-            </div>
+            <FormInput
+              label='Sector'
+              id='sector'
+              type='text'
+              placeholder='e.g., Muhima'
+              register={register}
+              error={errors.sector}
+            />
 
             {/* Cell */}
-            <div>
-              <label className='block text-sm font-semibold text-slate-900'>Cell</label>
-              <input
-                type='text'
-                name='cell'
-                value={formData.cell}
-                onChange={handleInputChange}
-                placeholder='e.g., Kiyovu'
-                className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-              />
-            </div>
+            <FormInput
+              label='Cell'
+              id='cell'
+              type='text'
+              placeholder='e.g., Kiyovu'
+              register={register}
+              error={errors.cell}
+            />
 
             {/* Village */}
-            <div>
-              <label className='block text-sm font-semibold text-slate-900'>Village</label>
-              <input
-                type='text'
-                name='village'
-                value={formData.village}
-                onChange={handleInputChange}
-                placeholder='e.g., Kiyovu Village'
-                className='mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
-              />
-            </div>
+            <FormInput
+              label='Village'
+              id='village'
+              type='text'
+              placeholder='e.g., Kiyovu Village'
+              register={register}
+              error={errors.village}
+            />
           </div>
 
-          {/* Submit Button */}
-          <div className='flex gap-3 pt-4'>
+          {/* Submit Buttons */}
+          <div className='flex gap-3 pt-2'>
             <button
               type='submit'
-              className='flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700'
+              disabled={isPending}
+              className='flex-1 rounded-lg bg-sky-700 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 disabled:transform-none disabled:shadow-none'
             >
-              Create Campaign
+              {isPending ? 'Creating Campaign...' : 'Create Campaign'}
             </button>
             <button
-              type='reset'
+              type='button'
               onClick={() => {
-                setFormData({
-                  title: '',
-                  description: '',
-                  startDate: '',
-                  endDate: '',
-                  startTime: '08:00',
-                  endTime: '17:00',
-                  location: '',
-                  province: '',
-                  district: '',
-                  sector: '',
-                  cell: '',
-                  village: '',
-                });
+                reset();
                 setDistricts([]);
               }}
-              className='rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50'
+              disabled={isPending}
+              className='rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed'
             >
               Clear
             </button>
