@@ -1,15 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
-// import ProtectedRoute from './components/ProtectedRoute';
 import CreateCampaignForm from './features/dashboard/CreateCampaignForm';
 import RecordAssessmentForm from './features/dashboard/RecordAssessmentForm';
-import DashboardLayout from './pages/Account';
+import Account from './pages/Account';
 import AssessmentsPage from './pages/AssessmentsPage';
 import CampaignsPage from './pages/CampaignsPage';
 import DashboardPage from './pages/DashboardPage';
 import IndicatorsPage from './pages/IndicatorsPage';
 import LoginPage from './pages/LoginPage';
-import Account from './pages/Account';
 
 function App() {
   return (
@@ -18,17 +16,12 @@ function App() {
       <Route path='/login' element={<LoginPage />} />
       <Route path='/' element={<Navigate to='/login' replace />} />
 
-      {/* Protected Routes */}
-      <Route
-        path='/'
-        element={
-          // <ProtectedRoute>
-          <Account />
-          // </ProtectedRoute>
-        }
-      >
+      {/* Protected Layout */}
+      <Route path='/' element={<Account />}>
         <Route index element={<Navigate replace to='dashboard' />} />
         <Route path='dashboard' element={<DashboardPage />} />
+
+        {/* Assessments */}
         <Route path='assessments' element={<AssessmentsPage />} />
         <Route
           path='assessments/record'
@@ -38,22 +31,22 @@ function App() {
             </div>
           }
         />
-        <Route path='campaigns' element={<CampaignsPage />} />
-        <Route
-          path='campaigns/create'
-          element={
-            // <ProtectedRoute requiredRoles='admin'>
-            <div className='max-w-4xl'>
-              <CreateCampaignForm />
-            </div>
-            // </ProtectedRoute>
-          }
-        />
+
+        {/* Campaigns (nested) */}
+        <Route path='campaigns'>
+          {/* default => Campaigns page */}
+          <Route index element={<CampaignsPage />} />
+
+          {/* /campaigns/create */}
+          <Route path='create' element={<CreateCampaignForm />} />
+        </Route>
+
+        {/* Indicators */}
         <Route path='indicators' element={<IndicatorsPage />} />
       </Route>
 
       {/* Fallback */}
-      <Route path='*' element={<Navigate to='/overview' replace />} />
+      <Route path='*' element={<Navigate to='/dashboard' replace />} />
     </Routes>
   );
 }

@@ -14,9 +14,9 @@ export default function Sidebar() {
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: RiDashboard2Line, show: true },
     { path: '/assessments', label: 'Assessments', icon: FiActivity, show: true },
-    { path: '/assessments/record', label: 'Record Assessment', icon: FiActivity, show: true },
+    // { path: '/assessments/record', label: 'Record Assessment', icon: FiActivity, show: true },
     { path: '/campaigns', label: 'Campaigns', icon: FiMapPin, show: true },
-    { path: '/campaigns/create', label: 'Create Campaign', icon: FiMapPin, show: true },
+    // { path: '/campaigns/create', label: 'Create Campaign', icon: FiMapPin, show: true },
     { path: '/indicators', label: 'Indicators', icon: FiDatabase, show: true },
   ];
 
