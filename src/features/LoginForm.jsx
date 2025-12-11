@@ -1,10 +1,12 @@
 import FormButton from '../ui/FormButton';
 import FormGroup from '../ui/FormGroup';
 import FormInput from '../ui/FormInput';
+import { getErrorMessage } from '../utils/axios.utils';
 import { useLogin } from './auth/auth.queries';
 
 export default function LoginForm({ register, handleSubmit, errors }) {
-  const { login } = useLogin();
+  const { isPending, login, error } = useLogin();
+
   const onSubmit = async (data) => {
     login(data);
   };
@@ -12,6 +14,12 @@ export default function LoginForm({ register, handleSubmit, errors }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <FormGroup>
+        {error && (
+          <div className='rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700'>
+            {getErrorMessage(error)}
+          </div>
+        )}
+
         <FormInput
           label='Email Address'
           id='email'
@@ -44,7 +52,7 @@ export default function LoginForm({ register, handleSubmit, errors }) {
           error={errors.password}
         />
 
-        <FormButton>Log In</FormButton>
+        <FormButton disabled={isPending}>{isPending ? 'Logging in...' : 'Log In'}</FormButton>
       </FormGroup>
     </form>
   );
