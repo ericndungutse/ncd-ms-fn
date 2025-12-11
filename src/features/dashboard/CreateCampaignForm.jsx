@@ -4,34 +4,15 @@ import { Link } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useCreateCampaign } from '../screeningCampaign/campaigns.queries';
 import { getErrorMessage } from '../../utils/axios.utils';
-import FormButton from '../../ui/FormButton';
+import { RWANDA_LOCATIONS } from '../../utils/locations';
 import FormInput from '../../ui/FormInput';
-import FormGroup from '../../ui/FormGroup';
-
-const RWANDA_LOCATIONS = {
-  'Kigali City': {
-    districts: ['Gasabo', 'Kicukiro', 'Nyarugenge'],
-  },
-  'Northern Province': {
-    districts: ['Burera', 'Gicumbi', 'Musanze', 'Ruhengeri'],
-  },
-  'Southern Province': {
-    districts: ['Bugesera', 'Gisagara', 'Huye', 'Nyamagabe', 'Nyanza', 'Ruhango'],
-  },
-  'Eastern Province': {
-    districts: ['Bugesera', 'Gatsibo', 'Kayonza', 'Kirehe', 'Ngoma', 'Rwamagana'],
-  },
-  'Western Province': {
-    districts: ['Karongi', 'Kibuye', 'Kusama', 'Nyabihu', 'Nyamasheke', 'Rubavu'],
-  },
-};
 
 export default function CreateCampaignForm() {
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
+    getValues,
     reset,
     setError,
   } = useForm({
@@ -52,11 +33,22 @@ export default function CreateCampaignForm() {
   });
 
   const { isPending, createCampaignMutation, error } = useCreateCampaign();
+  const [selectedProvince, setSelectedProvince] = useState('');
   const [districts, setDistricts] = useState([]);
+  const [sectors, setSectors] = useState([]);
 
   const handleProvinceChange = (e) => {
     const province = e.target.value;
-    setDistricts(RWANDA_LOCATIONS[province]?.districts || []);
+    setSelectedProvince(province);
+    const provinceData = RWANDA_LOCATIONS[province];
+    setDistricts(provinceData ? Object.keys(provinceData.districts) : []);
+    setSectors([]);
+  };
+
+  const handleDistrictChange = (e) => {
+    const district = e.target.value;
+    const provinceData = RWANDA_LOCATIONS[selectedProvince];
+    setSectors(provinceData?.districts[district] || []);
   };
 
   const onSubmit = async (data) => {
@@ -179,7 +171,7 @@ export default function CreateCampaignForm() {
               registerOptions={{
                 required: 'End date is required',
                 validate: (value) => {
-                  const startDate = watch('startDate');
+                  const startDate = getValues('startDate');
                   return !startDate || new Date(value) > new Date(startDate) || 'End date must be after start date';
                 },
               }}
@@ -252,11 +244,19 @@ export default function CreateCampaignForm() {
               <div>
                 <label htmlFor='district' className='block text-sm font-semibold text-slate-900 mb-2'>
                   District
+                  <span className='text-rose-600 ml-1'>*</span>
                 </label>
                 <select
-                  {...register('district')}
+                  {...register('district', {
+                    required: 'District is required',
+                    onChange: handleDistrictChange,
+                  })}
                   id='district'
-                  className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                  className={`w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm ${
+                    errors.district
+                      ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-100 focus:border-rose-500'
+                      : 'border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                  }`}
                 >
                   <option value=''>Select district</option>
                   {districts.map((district) => (
@@ -265,18 +265,60 @@ export default function CreateCampaignForm() {
                     </option>
                   ))}
                 </select>
+                {errors.district && (
+                  <div className='flex items-center gap-2 mt-2' role='alert'>
+                    <svg className='w-4 h-4 text-rose-600 shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                      <path
+                        fillRule='evenodd'
+                        d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
+                        clipRule='evenodd'
+                      />
+                    </svg>
+                    <p className='text-rose-700 text-sm font-semibold'>{errors.district.message}</p>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Sector */}
-            <FormInput
-              label='Sector'
-              id='sector'
-              type='text'
-              placeholder='e.g., Muhima'
-              register={register}
-              error={errors.sector}
-            />
+            {sectors.length > 0 && (
+              <div>
+                <label htmlFor='sector' className='block text-sm font-semibold text-slate-900 mb-2'>
+                  Sector
+                  <span className='text-rose-600 ml-1'>*</span>
+                </label>
+                <select
+                  {...register('sector', {
+                    required: 'Sector is required',
+                  })}
+                  id='sector'
+                  className={`w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm ${
+                    errors.sector
+                      ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-100 focus:border-rose-500'
+                      : 'border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                  }`}
+                >
+                  <option value=''>Select sector</option>
+                  {sectors.map((sector) => (
+                    <option key={sector} value={sector}>
+                      {sector}
+                    </option>
+                  ))}
+                </select>
+                {errors.sector && (
+                  <div className='flex items-center gap-2 mt-2' role='alert'>
+                    <svg className='w-4 h-4 text-rose-600 shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                      <path
+                        fillRule='evenodd'
+                        d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
+                        clipRule='evenodd'
+                      />
+                    </svg>
+                    <p className='text-rose-700 text-sm font-semibold'>{errors.sector.message}</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Cell */}
             <FormInput
@@ -312,7 +354,9 @@ export default function CreateCampaignForm() {
               type='button'
               onClick={() => {
                 reset();
+                setSelectedProvince('');
                 setDistricts([]);
+                setSectors([]);
               }}
               disabled={isPending}
               className='rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed'
