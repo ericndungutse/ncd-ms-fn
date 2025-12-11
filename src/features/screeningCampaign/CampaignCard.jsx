@@ -10,7 +10,7 @@ const formatDateRange = (startDate, endDate) => {
 };
 
 export default function CampaignCard({ campaign, tone }) {
-  const progressTone = tone === 'slate' ? 'rose' : tone;
+  // const progressTone = tone === 'slate' ? 'rose' : tone;
 
   return (
     <div className='rounded-lg border border-slate-200 bg-white p-6 hover:shadow-lg transition'>
@@ -36,12 +36,12 @@ export default function CampaignCard({ campaign, tone }) {
       <div className='mb-4 space-y-2'>
         <div className='flex items-center justify-between text-sm'>
           <span className='font-semibold text-slate-900'>Progress</span>
-          <span className='text-slate-600'>
+          {/* <span className='text-slate-600'>
             {campaign.assessmentsRecorded} / {campaign.targetAssessments}
-          </span>
+          </span> */}
         </div>
-        <ProgressBar value={campaign.progress} tone={progressTone} />
-        <p className='text-xs text-slate-500'>{campaign.progress}% complete</p>
+        {/* <ProgressBar value={campaign.progress} tone={progressTone} /> */}
+        {/* <p className='text-xs text-slate-500'>{campaign.progress}% complete</p> */}
       </div>
 
       <button className='w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50'>
