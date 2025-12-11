@@ -1,10 +1,10 @@
 import { useForm } from 'react-hook-form';
-import LoginForm from '../components/LoginForm';
 import BrandingSection from '../ui/BrandingSection';
 import LoginFormContainer from '../ui/LoginFormContainer';
 import SignInHeader from '../ui/SignInHeader';
 import FooterLinks from '../ui/FooterLinks';
 import Copyright from '../ui/Copyright';
+import LoginForm from '../features/LoginForm';
 
 export default function LoginPage() {
   const {
@@ -15,7 +15,6 @@ export default function LoginPage() {
     defaultValues: {
       email: '',
       password: '',
-      rememberMe: false,
     },
   });
 

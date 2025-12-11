@@ -1,11 +1,12 @@
-import FormInput from '../ui/FormInput';
 import FormButton from '../ui/FormButton';
 import FormGroup from '../ui/FormGroup';
+import FormInput from '../ui/FormInput';
+import { useLogin } from './auth/auth.queries';
 
 export default function LoginForm({ register, handleSubmit, errors }) {
-  const onSubmit = (data) => {
-    // Form submission logic would go here
-    console.log('Form data:', data);
+  const { login } = useLogin();
+  const onSubmit = async (data) => {
+    login(data);
   };
 
   return (
