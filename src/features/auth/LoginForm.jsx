@@ -1,8 +1,8 @@
-import FormButton from '../ui/FormButton';
-import FormGroup from '../ui/FormGroup';
-import FormInput from '../ui/FormInput';
-import { getErrorMessage } from '../utils/axios.utils';
-import { useLogin } from './auth/auth.queries';
+import FormButton from '../../ui/FormButton';
+import FormGroup from '../../ui/FormGroup';
+import FormInput from '../../ui/FormInput';
+import { getErrorMessage } from '../../utils/axios.utils';
+import { useLogin } from './auth.queries';
 
 export default function LoginForm({ register, handleSubmit, errors }) {
   const { isPending, login, error } = useLogin();

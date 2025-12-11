@@ -4,7 +4,7 @@ import LoginFormContainer from '../ui/LoginFormContainer';
 import SignInHeader from '../ui/SignInHeader';
 import FooterLinks from '../ui/FooterLinks';
 import Copyright from '../ui/Copyright';
-import LoginForm from '../features/LoginForm';
+import LoginForm from '../features/auth/LoginForm';
 
 export default function LoginPage() {
   const {

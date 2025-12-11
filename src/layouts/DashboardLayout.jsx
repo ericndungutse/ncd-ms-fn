@@ -1,16 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { FiMenu, FiX, FiLogOut, FiHome, FiActivity, FiMapPin, FiDatabase } from 'react-icons/fi';
-import { useAuth } from '../contexts/useAuth';
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, hasRole } = useAuth();
-
   const handleLogout = () => {
-    logout();
     navigate('/login', { replace: true });
   };
 
@@ -19,7 +15,7 @@ export default function DashboardLayout({ children }) {
     { path: '/assessments', label: 'Assessments', icon: FiActivity, show: true },
     { path: '/assessments/record', label: 'Record Assessment', icon: FiActivity, show: true },
     { path: '/campaigns', label: 'Campaigns', icon: FiMapPin, show: true },
-    { path: '/campaigns/create', label: 'Create Campaign', icon: FiMapPin, show: hasRole('admin') },
+    { path: '/campaigns/create', label: 'Create Campaign', icon: FiMapPin, show: true },
     { path: '/indicators', label: 'Indicators', icon: FiDatabase, show: true },
   ];
 
@@ -64,7 +60,7 @@ export default function DashboardLayout({ children }) {
               }`}
               title={!sidebarOpen ? item.label : ''}
             >
-              <item.icon className='h-5 w-5 flex-shrink-0' />
+              <item.icon className='h-5 w-5 shrink-0' />
               {sidebarOpen && <span>{item.label}</span>}
             </Link>
           ))}
@@ -74,8 +70,8 @@ export default function DashboardLayout({ children }) {
         <div className='space-y-3 border-t border-slate-100 pt-4'>
           {sidebarOpen && (
             <div className='text-xs'>
-              <p className='font-semibold text-slate-900'>{user?.profile?.firstName}</p>
-              <p className='text-slate-500 capitalize'>{user?.role}</p>
+              {/* <p className='font-semibold text-slate-900'>{user?.profile?.firstName}</p>
+              <p className='text-slate-500 capitalize'>{user?.role}</p> */}
             </div>
           )}
           <button
@@ -85,7 +81,7 @@ export default function DashboardLayout({ children }) {
             }`}
             title={!sidebarOpen ? 'Logout' : ''}
           >
-            <FiLogOut className='h-5 w-5 flex-shrink-0' />
+            <FiLogOut className='h-5 w-5 shrink-0' />
             {sidebarOpen && <span>Log Out</span>}
           </button>
         </div>
@@ -93,7 +89,9 @@ export default function DashboardLayout({ children }) {
 
       {/* Main Content */}
       <main className='flex-1 overflow-auto'>
-        <div className='min-h-screen px-4 py-6 sm:px-6 lg:px-8'>{children}</div>
+        <div className='min-h-screen px-4 py-6 sm:px-6 lg:px-8'>
+          <Outlet />
+        </div>
       </main>
     </div>
   );
