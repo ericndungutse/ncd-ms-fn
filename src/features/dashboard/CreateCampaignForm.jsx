@@ -33,6 +33,7 @@ export default function CreateCampaignForm() {
     formState: { errors },
     watch,
     reset,
+    setError,
   } = useForm({
     defaultValues: {
       title: '',
@@ -77,7 +78,24 @@ export default function CreateCampaignForm() {
       },
     };
 
-    createCampaignMutation(payload);
+    createCampaignMutation(payload, {
+      onError: (error) => {
+        const errorData = error?.response?.data;
+
+        if (errorData?.errors) {
+          // Map API field errors to form fields
+          Object.entries(errorData.errors).forEach(([field, message]) => {
+            // Handle nested address fields (e.g., "address.province" -> "province")
+            const fieldName = field.startsWith('address.') ? field.replace('address.', '') : field;
+
+            setError(fieldName, {
+              type: 'manual',
+              message: message,
+            });
+          });
+        }
+      },
+    });
   };
 
   return (
@@ -99,7 +117,7 @@ export default function CreateCampaignForm() {
           <p className='mt-1 text-sm text-slate-600'>Plan and schedule a new NCD screening campaign</p>
         </div>
 
-        {error && (
+        {error && !error?.response?.data?.errors && (
           <div className='mb-6 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 font-medium'>
             {getErrorMessage(error)}
           </div>

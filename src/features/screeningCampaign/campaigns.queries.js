@@ -43,6 +43,15 @@ export function useCreateCampaign() {
     },
 
     onError: (error) => {
+      // Check if error has field-specific validation errors
+      const errorData = error?.response?.data;
+
+      if (errorData?.errors) {
+        // Don't show toast for field-specific errors, they'll be displayed on fields
+        return;
+      }
+
+      // Show toast for general errors
       const errorMessage = getErrorMessage(error);
       toast.error(errorMessage || 'Failed to create campaign');
     },
