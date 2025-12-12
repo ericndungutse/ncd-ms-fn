@@ -1,10 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
 import CreateCampaignForm from './features/dashboard/CreateCampaignForm';
-import RecordAssessmentForm from './features/dashboard/RecordAssessmentForm';
 import { RegisterUserForm } from './features/users';
 import Account from './pages/Account';
 import AssessmentsPage from './pages/AssessmentsPage';
+import RecordAssessmentPage from './pages/RecordAssessmentPage';
 import CampaignsPage from './pages/CampaignsPage';
 import DashboardPage from './pages/DashboardPage';
 import IndicatorsPage from './pages/IndicatorsPage';
@@ -25,14 +25,7 @@ function App() {
 
         {/* Assessments */}
         <Route path='assessments' element={<AssessmentsPage />} />
-        <Route
-          path='assessments/record'
-          element={
-            <div className='max-w-4xl'>
-              <RecordAssessmentForm />
-            </div>
-          }
-        />
+        <Route path='assessments/record' element={<RecordAssessmentPage />} />
 
         {/* Campaigns (nested) */}
         <Route path='campaigns'>
