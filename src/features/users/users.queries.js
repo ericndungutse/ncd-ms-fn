@@ -1,6 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
-import { getUsers } from '../../service/users.service';
-import { getErrorMessage } from '../../utils/axios.utils';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { getUsers, registerUser } from '../../service/users.service';
+import { getErrorMessage, getResponseData } from '../../utils/axios.utils';
 
 export function useFetchUsers(params = {}) {
   const { data, isLoading, error, refetch, isFetching } = useQuery({
@@ -15,4 +17,45 @@ export function useFetchUsers(params = {}) {
     error: error ? getErrorMessage(error) : null,
     refetch,
   };
+}
+
+export function useRegisterUser() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const {
+    isPending,
+    mutate: registerUserMutation,
+    error,
+  } = useMutation({
+    mutationFn: (userData) => registerUser(userData),
+
+    onSuccess: (response) => {
+      const { message } = getResponseData(response);
+
+      // Invalidate users query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+
+      // Navigate back to users list
+      navigate('/users', { replace: true });
+
+      // Show success message
+      toast.success(message || 'User registered successfully!');
+    },
+
+    onError: (error) => {
+      // Check if error has field-specific validation errors
+      const errorData = error?.response?.data;
+
+      if (errorData?.errors) {
+        // Don't show toast for field-specific errors, they'll be displayed on fields
+        return;
+      }
+
+      // Show generic error message
+      toast.error(getErrorMessage(error));
+    },
+  });
+
+  return { isPending, registerUserMutation, error };
 }

@@ -2,32 +2,28 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { useCreateCampaign } from '../screeningCampaign/campaigns.queries';
+import { useRegisterUser } from './users.queries';
 import { getErrorMessage } from '../../utils/axios.utils';
 import { RWANDA_LOCATIONS } from '../../utils/locations';
 import FormInput from '../../ui/FormInput';
 
-export default function CreateCampaignForm() {
+export default function RegisterUserForm() {
   const {
     register,
     handleSubmit,
     formState: { errors },
-    getValues,
     reset,
     setError,
   } = useForm({
     defaultValues: {
-      title: '',
-      description: '',
-      startDay: '',
-      startMonth: '',
-      startYear: '',
-      endDay: '',
-      endMonth: '',
-      endYear: '',
-      startTime: '08:00',
-      endTime: '17:00',
-      location: '',
+      email: '',
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      nationalIdNumber: '',
+      birthDay: '',
+      birthMonth: '',
+      birthYear: '',
       province: '',
       district: '',
       sector: '',
@@ -36,7 +32,7 @@ export default function CreateCampaignForm() {
     },
   });
 
-  const { isPending, createCampaignMutation, error } = useCreateCampaign();
+  const { isPending, registerUserMutation, error } = useRegisterUser();
   const [selectedProvince, setSelectedProvince] = useState('');
   const [districts, setDistricts] = useState([]);
   const [sectors, setSectors] = useState([]);
@@ -56,42 +52,47 @@ export default function CreateCampaignForm() {
   };
 
   const onSubmit = async (data) => {
-    // Construct dates from separate fields
-    const startMonth = String(data.startMonth).padStart(2, '0');
-    const startDay = String(data.startDay).padStart(2, '0');
-    const startDate = `${data.startYear}-${startMonth}-${startDay}`;
-
-    const endMonth = String(data.endMonth).padStart(2, '0');
-    const endDay = String(data.endDay).padStart(2, '0');
-    const endDate = `${data.endYear}-${endMonth}-${endDay}`;
+    // Construct date of birth from separate fields
+    let dateOfBirth = '';
+    if (data.birthYear && data.birthMonth && data.birthDay) {
+      const month = String(data.birthMonth).padStart(2, '0');
+      const day = String(data.birthDay).padStart(2, '0');
+      dateOfBirth = `${data.birthYear}-${month}-${day}`;
+    }
 
     // Transform data to match API payload structure
     const payload = {
-      title: data.title,
-      description: data.description,
-      startDate: startDate,
-      endDate: endDate,
-      startTime: data.startTime,
-      endTime: data.endTime,
-      location: data.location,
-      address: {
-        province: data.province,
-        district: data.district,
-        sector: data.sector,
-        cell: data.cell,
-        village: data.village,
+      email: data.email,
+      profile: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
+        nationalIdNumber: data.nationalIdNumber,
+        dateOfBirth: dateOfBirth,
+        address: {
+          province: data.province,
+          district: data.district,
+          sector: data.sector,
+          cell: data.cell,
+          village: data.village,
+        },
       },
     };
 
-    createCampaignMutation(payload, {
+    registerUserMutation(payload, {
       onError: (error) => {
         const errorData = error?.response?.data;
 
         if (errorData?.errors) {
           // Map API field errors to form fields
           Object.entries(errorData.errors).forEach(([field, message]) => {
-            // Handle nested address fields (e.g., "address.province" -> "province")
-            const fieldName = field.startsWith('address.') ? field.replace('address.', '') : field;
+            // Handle nested profile and address fields
+            let fieldName = field;
+            if (field.startsWith('profile.address.')) {
+              fieldName = field.replace('profile.address.', '');
+            } else if (field.startsWith('profile.')) {
+              fieldName = field.replace('profile.', '');
+            }
 
             setError(fieldName, {
               type: 'manual',
@@ -108,18 +109,18 @@ export default function CreateCampaignForm() {
       {/* Breadcrumb Navigation */}
       <div className='flex items-center gap-3'>
         <Link
-          to='/campaigns'
+          to='/users'
           className='inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm hover:shadow'
         >
-          <FiArrowLeft className='h-4 w-4' /> Back to Campaigns
+          <FiArrowLeft className='h-4 w-4' /> Back to Users
         </Link>
       </div>
 
       {/* Form Container */}
       <div className='rounded-lg border border-slate-200 bg-white p-6 shadow-sm'>
         <div className='mb-6'>
-          <h2 className='text-2xl font-semibold text-slate-900'>Create Screening Campaign</h2>
-          <p className='mt-1 text-sm text-slate-600'>Plan and schedule a new NCD screening campaign</p>
+          <h2 className='text-2xl font-semibold text-slate-900'>Register New User</h2>
+          <p className='mt-1 text-sm text-slate-600'>Create a new user account with profile information</p>
         </div>
 
         {error && !error?.response?.data?.errors && (
@@ -129,169 +130,157 @@ export default function CreateCampaignForm() {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
-          {/* Campaign Title */}
+          {/* Email */}
           <FormInput
-            label='Campaign Title'
-            id='title'
-            type='text'
-            placeholder='e.g., NCDC Screening Campaign Nyarugenge District'
+            label='Email'
+            id='email'
+            type='email'
+            placeholder='user@example.com'
             register={register}
             registerOptions={{
-              required: 'Campaign title is required',
-              minLength: {
-                value: 3,
-                message: 'Title must be at least 3 characters',
+              required: 'Email is required',
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: 'Invalid email address',
               },
             }}
-            error={errors.title}
+            error={errors.email}
           />
 
-          {/* Description */}
-          <div className='group'>
-            <label
-              htmlFor='description'
-              className='block text-sm font-semibold text-slate-900 mb-2 transition-colors group-focus-within:text-sky-700'
-            >
-              Description
-            </label>
-            <textarea
-              {...register('description')}
-              id='description'
-              placeholder='Describe the purpose and scope of this campaign...'
-              rows='4'
-              className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 hover:shadow resize-none'
-            />
-          </div>
+          {/* Personal Information Section */}
+          <div className='space-y-4 rounded-lg bg-slate-50 border border-slate-200 p-5'>
+            <h3 className='text-sm font-semibold text-slate-900'>Personal Information</h3>
 
-          {/* Dates */}
-          <div className='grid gap-4 sm:grid-cols-2'>
-            {/* Start Date */}
-            <div>
-              <label className='block text-sm font-semibold text-slate-900 mb-2'>
-                Start Date
-                <span className='text-rose-600 ml-1'>*</span>
-              </label>
-              <div className='grid grid-cols-3 gap-2'>
-                <select
-                  {...register('startDay', { required: 'Required' })}
-                  className='w-full px-3 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
-                >
-                  <option value=''>Day</option>
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  {...register('startMonth', { required: 'Required' })}
-                  className='w-full px-3 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
-                >
-                  <option value=''>Month</option>
-                  <option value='1'>Jan</option>
-                  <option value='2'>Feb</option>
-                  <option value='3'>Mar</option>
-                  <option value='4'>Apr</option>
-                  <option value='5'>May</option>
-                  <option value='6'>Jun</option>
-                  <option value='7'>Jul</option>
-                  <option value='8'>Aug</option>
-                  <option value='9'>Sep</option>
-                  <option value='10'>Oct</option>
-                  <option value='11'>Nov</option>
-                  <option value='12'>Dec</option>
-                </select>
-                <select
-                  {...register('startYear', { required: 'Required' })}
-                  className='w-full px-3 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
-                >
-                  <option value=''>Year</option>
-                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {(errors.startDay || errors.startMonth || errors.startYear) && (
-                <p className='text-rose-700 text-sm font-semibold mt-2'>Start date is required</p>
-              )}
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <FormInput
+                label='First Name'
+                id='firstName'
+                type='text'
+                placeholder='John'
+                register={register}
+                registerOptions={{
+                  required: 'First name is required',
+                  minLength: {
+                    value: 2,
+                    message: 'First name must be at least 2 characters',
+                  },
+                }}
+                error={errors.firstName}
+              />
+
+              <FormInput
+                label='Last Name'
+                id='lastName'
+                type='text'
+                placeholder='Doe'
+                register={register}
+                registerOptions={{
+                  required: 'Last name is required',
+                  minLength: {
+                    value: 2,
+                    message: 'Last name must be at least 2 characters',
+                  },
+                }}
+                error={errors.lastName}
+              />
             </div>
 
-            {/* End Date */}
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <FormInput
+                label='Phone Number'
+                id='phoneNumber'
+                type='tel'
+                placeholder='0788001122'
+                register={register}
+                registerOptions={{
+                  required: 'Phone number is required',
+                  pattern: {
+                    value: /^07[2-9][0-9]{7}$/,
+                    message: 'Invalid Rwanda phone number',
+                  },
+                }}
+                error={errors.phoneNumber}
+              />
+
+              <FormInput
+                label='National ID Number'
+                id='nationalIdNumber'
+                type='text'
+                placeholder='1199880012345678'
+                register={register}
+                registerOptions={{
+                  required: 'National ID number is required',
+                  pattern: {
+                    value: /^[0-9]{16}$/,
+                    message: 'National ID must be 16 digits',
+                  },
+                }}
+                error={errors.nationalIdNumber}
+              />
+            </div>
+
+            {/* Date of Birth */}
             <div>
-              <label className='block text-sm font-semibold text-slate-900 mb-2'>
-                End Date
-                <span className='text-rose-600 ml-1'>*</span>
-              </label>
-              <div className='grid grid-cols-3 gap-2'>
-                <select
-                  {...register('endDay', { required: 'Required' })}
-                  className='w-full px-3 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
-                >
-                  <option value=''>Day</option>
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  {...register('endMonth', { required: 'Required' })}
-                  className='w-full px-3 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
-                >
-                  <option value=''>Month</option>
-                  <option value='1'>Jan</option>
-                  <option value='2'>Feb</option>
-                  <option value='3'>Mar</option>
-                  <option value='4'>Apr</option>
-                  <option value='5'>May</option>
-                  <option value='6'>Jun</option>
-                  <option value='7'>Jul</option>
-                  <option value='8'>Aug</option>
-                  <option value='9'>Sep</option>
-                  <option value='10'>Oct</option>
-                  <option value='11'>Nov</option>
-                  <option value='12'>Dec</option>
-                </select>
-                <select
-                  {...register('endYear', { required: 'Required' })}
-                  className='w-full px-3 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
-                >
-                  <option value=''>Year</option>
-                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
+              <label className='block text-sm font-semibold text-slate-900 mb-2'>Date of Birth</label>
+              <div className='grid grid-cols-3 gap-3'>
+                {/* Day */}
+                <div>
+                  <select
+                    {...register('birthDay')}
+                    className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                  >
+                    <option value=''>Day</option>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                      <option key={day} value={day}>
+                        {day}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Month */}
+                <div>
+                  <select
+                    {...register('birthMonth')}
+                    className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                  >
+                    <option value=''>Month</option>
+                    <option value='1'>January</option>
+                    <option value='2'>February</option>
+                    <option value='3'>March</option>
+                    <option value='4'>April</option>
+                    <option value='5'>May</option>
+                    <option value='6'>June</option>
+                    <option value='7'>July</option>
+                    <option value='8'>August</option>
+                    <option value='9'>September</option>
+                    <option value='10'>October</option>
+                    <option value='11'>November</option>
+                    <option value='12'>December</option>
+                  </select>
+                </div>
+
+                {/* Year */}
+                <div>
+                  <select
+                    {...register('birthYear')}
+                    className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                  >
+                    <option value=''>Year</option>
+                    {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              {(errors.endDay || errors.endMonth || errors.endYear) && (
-                <p className='text-rose-700 text-sm font-semibold mt-2'>End date is required</p>
-              )}
             </div>
           </div>
-
-          {/* Times */}
-          <div className='grid gap-4 sm:grid-cols-2'>
-            <FormInput label='Start Time' id='startTime' type='time' register={register} error={errors.startTime} />
-
-            <FormInput label='End Time' id='endTime' type='time' register={register} error={errors.endTime} />
-          </div>
-
-          {/* Location Name */}
-          <FormInput
-            label='Location Name'
-            id='location'
-            type='text'
-            placeholder='e.g., Kigali University Teaching Hospital (CHUK)'
-            register={register}
-            error={errors.location}
-          />
 
           {/* Address Section */}
           <div className='space-y-4 rounded-lg bg-slate-50 border border-slate-200 p-5'>
-            <h3 className='text-sm font-semibold text-slate-900'>Campaign Address</h3>
+            <h3 className='text-sm font-semibold text-slate-900'>Address</h3>
 
             {/* Province */}
             <div>
@@ -418,8 +407,11 @@ export default function CreateCampaignForm() {
               label='Cell'
               id='cell'
               type='text'
-              placeholder='e.g., Kiyovu'
+              placeholder='e.g., Bibare'
               register={register}
+              registerOptions={{
+                required: 'Cell is required',
+              }}
               error={errors.cell}
             />
 
@@ -428,8 +420,11 @@ export default function CreateCampaignForm() {
               label='Village'
               id='village'
               type='text'
-              placeholder='e.g., Kiyovu Village'
+              placeholder='e.g., Gashuru'
               register={register}
+              registerOptions={{
+                required: 'Village is required',
+              }}
               error={errors.village}
             />
           </div>
@@ -441,7 +436,7 @@ export default function CreateCampaignForm() {
               disabled={isPending}
               className='flex-1 rounded-lg bg-sky-700 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 disabled:transform-none disabled:shadow-none'
             >
-              {isPending ? 'Creating Campaign...' : 'Create Campaign'}
+              {isPending ? 'Registering User...' : 'Register User'}
             </button>
             <button
               type='button'

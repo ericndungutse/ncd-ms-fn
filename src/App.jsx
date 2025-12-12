@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
 import CreateCampaignForm from './features/dashboard/CreateCampaignForm';
 import RecordAssessmentForm from './features/dashboard/RecordAssessmentForm';
+import { RegisterUserForm } from './features/users';
 import Account from './pages/Account';
 import AssessmentsPage from './pages/AssessmentsPage';
 import CampaignsPage from './pages/CampaignsPage';
@@ -45,8 +46,14 @@ function App() {
         {/* Indicators */}
         <Route path='indicators' element={<IndicatorsPage />} />
 
-        {/* Users */}
-        <Route path='users' element={<UsersPage />} />
+        {/* Users (nested) */}
+        <Route path='users'>
+          {/* default => Users page */}
+          <Route index element={<UsersPage />} />
+
+          {/* /users/register */}
+          <Route path='register' element={<RegisterUserForm />} />
+        </Route>
       </Route>
 
       {/* Fallback */}
