@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiActivity, FiDatabase, FiLogOut, FiMapPin, FiMenu, FiX } from 'react-icons/fi';
+import { FiActivity, FiDatabase, FiLogOut, FiMapPin, FiMenu, FiUsers, FiX } from 'react-icons/fi';
 import { RiDashboard2Line } from 'react-icons/ri';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -18,6 +18,7 @@ export default function Sidebar() {
     { path: '/campaigns', label: 'Campaigns', icon: FiMapPin, show: true },
     // { path: '/campaigns/create', label: 'Create Campaign', icon: FiMapPin, show: true },
     { path: '/indicators', label: 'Indicators', icon: FiDatabase, show: true },
+    { path: '/users', label: 'Users', icon: FiUsers, show: true },
   ];
 
   const visibleNavItems = navItems.filter((item) => item.show);

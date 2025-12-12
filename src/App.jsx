@@ -8,6 +8,7 @@ import CampaignsPage from './pages/CampaignsPage';
 import DashboardPage from './pages/DashboardPage';
 import IndicatorsPage from './pages/IndicatorsPage';
 import LoginPage from './pages/LoginPage';
+import UsersPage from './pages/UsersPage';
 
 function App() {
   return (
@@ -43,6 +44,9 @@ function App() {
 
         {/* Indicators */}
         <Route path='indicators' element={<IndicatorsPage />} />
+
+        {/* Users */}
+        <Route path='users' element={<UsersPage />} />
       </Route>
 
       {/* Fallback */}
