@@ -7,7 +7,7 @@ import { getErrorMessage } from '../../utils/axios.utils';
 import { RWANDA_LOCATIONS } from '../../utils/locations';
 import FormInput from '../../ui/FormInput';
 
-export default function RegisterUserForm() {
+export default function RegisterUserForm({ mode = 'page', onSuccess, onCancel }) {
   const {
     register,
     handleSubmit,
@@ -36,6 +36,8 @@ export default function RegisterUserForm() {
   const [selectedProvince, setSelectedProvince] = useState('');
   const [districts, setDistricts] = useState([]);
   const [sectors, setSectors] = useState([]);
+
+  const isModal = mode === 'modal';
 
   const handleProvinceChange = (e) => {
     const province = e.target.value;
@@ -80,6 +82,13 @@ export default function RegisterUserForm() {
     };
 
     registerUserMutation(payload, {
+      onSuccess: () => {
+        reset();
+        setSelectedProvince('');
+        setDistricts([]);
+        setSectors([]);
+        if (onSuccess) onSuccess();
+      },
       onError: (error) => {
         const errorData = error?.response?.data;
 
@@ -105,31 +114,32 @@ export default function RegisterUserForm() {
   };
 
   return (
-    <div className='max-w-4xl mx-auto space-y-6 animate-fade-in'>
+    <div className='max-w-4xl mx-auto space-y-4 sm:space-y-6 animate-fade-in'>
       {/* Breadcrumb Navigation */}
-      <div className='flex items-center gap-3'>
-        <Link
-          to='/users'
-          className='inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm hover:shadow'
-        >
-          <FiArrowLeft className='h-4 w-4' /> Back to Users
-        </Link>
-      </div>
+      {!isModal && (
+        <div className='flex items-center gap-3'>
+          <Link
+            to='/users'
+            className='inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm hover:shadow cursor-pointer'
+          >
+            <FiArrowLeft className='h-3 w-3 sm:h-4 sm:w-4' /> Back to Users
+          </Link>
+        </div>
+      )}
 
       {/* Form Container */}
-      <div className='rounded-lg border border-slate-200 bg-white p-6 shadow-sm'>
-        <div className='mb-6'>
-          <h2 className='text-2xl font-semibold text-slate-900'>Register New User</h2>
-          <p className='mt-1 text-sm text-slate-600'>Create a new user account with profile information</p>
+      <div className='rounded-lg border border-slate-200 bg-white p-4 sm:p-5 md:p-6 shadow-sm'>
+        <div className='mb-4 sm:mb-6'>
+          <h2 className='text-lg sm:text-xl font-semibold text-slate-900'>New User Account</h2>
         </div>
 
         {error && !error?.response?.data?.errors && (
-          <div className='mb-6 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 font-medium'>
+          <div className='mb-4 sm:mb-6 rounded-lg border border-rose-200 bg-rose-50 p-3 sm:p-4 text-xs sm:text-sm text-rose-700 font-medium'>
             {getErrorMessage(error)}
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 sm:space-y-5'>
           {/* Email */}
           <FormInput
             label='Email'
@@ -148,10 +158,10 @@ export default function RegisterUserForm() {
           />
 
           {/* Personal Information Section */}
-          <div className='space-y-4 rounded-lg bg-slate-50 border border-slate-200 p-5'>
-            <h3 className='text-sm font-semibold text-slate-900'>Personal Information</h3>
+          <div className='space-y-3 sm:space-y-4 rounded-lg bg-slate-50 border border-slate-200 p-4 sm:p-5'>
+            <h3 className='text-xs font-semibold text-slate-700 uppercase tracking-wide'>Personal Info</h3>
 
-            <div className='grid gap-4 sm:grid-cols-2'>
+            <div className='grid gap-3 sm:gap-4 sm:grid-cols-2'>
               <FormInput
                 label='First Name'
                 id='firstName'
@@ -185,7 +195,7 @@ export default function RegisterUserForm() {
               />
             </div>
 
-            <div className='grid gap-4 sm:grid-cols-2'>
+            <div className='grid gap-3 sm:gap-4 sm:grid-cols-2'>
               <FormInput
                 label='Phone Number'
                 id='phoneNumber'
@@ -221,13 +231,13 @@ export default function RegisterUserForm() {
 
             {/* Date of Birth */}
             <div>
-              <label className='block text-sm font-semibold text-slate-900 mb-2'>Date of Birth</label>
-              <div className='grid grid-cols-3 gap-3'>
+              <label className='block text-xs sm:text-sm font-semibold text-slate-900 mb-2'>Birth date</label>
+              <div className='grid grid-cols-3 gap-2'>
                 {/* Day */}
                 <div>
                   <select
                     {...register('birthDay')}
-                    className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                    className='w-full px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-slate-900 text-xs sm:text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 cursor-pointer'
                   >
                     <option value=''>Day</option>
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
@@ -242,7 +252,7 @@ export default function RegisterUserForm() {
                 <div>
                   <select
                     {...register('birthMonth')}
-                    className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                    className='w-full px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-slate-900 text-xs sm:text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 cursor-pointer'
                   >
                     <option value=''>Month</option>
                     <option value='1'>January</option>
@@ -264,7 +274,7 @@ export default function RegisterUserForm() {
                 <div>
                   <select
                     {...register('birthYear')}
-                    className='w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                    className='w-full px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-slate-900 text-xs sm:text-sm font-medium focus:outline-none transition-all shadow-sm border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 cursor-pointer'
                   >
                     <option value=''>Year</option>
                     {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((year) => (
@@ -279,164 +289,138 @@ export default function RegisterUserForm() {
           </div>
 
           {/* Address Section */}
-          <div className='space-y-4 rounded-lg bg-slate-50 border border-slate-200 p-5'>
-            <h3 className='text-sm font-semibold text-slate-900'>Address</h3>
+          <div className='space-y-3 sm:space-y-4 rounded-lg bg-slate-50 border border-slate-200 p-4 sm:p-5'>
+            <h3 className='text-xs font-semibold text-slate-700 uppercase tracking-wide'>Address & Location</h3>
 
-            {/* Province */}
-            <div>
-              <label htmlFor='province' className='block text-sm font-semibold text-slate-900 mb-2'>
-                Province
-                <span className='text-rose-600 ml-1'>*</span>
-              </label>
-              <select
-                {...register('province', {
-                  required: 'Province is required',
-                  onChange: handleProvinceChange,
-                })}
-                id='province'
-                className={`w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm ${
-                  errors.province
-                    ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-100 focus:border-rose-500'
-                    : 'border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
-                }`}
-              >
-                <option value=''>Select province</option>
-                {Object.keys(RWANDA_LOCATIONS).map((province) => (
-                  <option key={province} value={province}>
-                    {province}
-                  </option>
-                ))}
-              </select>
-              {errors.province && (
-                <div className='flex items-center gap-2 mt-2' role='alert'>
-                  <svg className='w-4 h-4 text-rose-600 shrink-0' fill='currentColor' viewBox='0 0 20 20'>
-                    <path
-                      fillRule='evenodd'
-                      d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
-                      clipRule='evenodd'
-                    />
-                  </svg>
-                  <p className='text-rose-700 text-sm font-semibold'>{errors.province.message}</p>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4'>
+              {/* Province */}
+              <div>
+                <label htmlFor='province' className='block text-xs sm:text-sm font-semibold text-slate-900 mb-2'>
+                  Province
+                  <span className='text-rose-600 ml-1'>*</span>
+                </label>
+                <select
+                  {...register('province', {
+                    required: 'Province is required',
+                    onChange: handleProvinceChange,
+                  })}
+                  id='province'
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-slate-900 text-xs sm:text-sm font-medium focus:outline-none transition-all shadow-sm cursor-pointer ${
+                    errors.province
+                      ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-100 focus:border-rose-500'
+                      : 'border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                  }`}
+                >
+                  <option value=''>Select province</option>
+                  {Object.keys(RWANDA_LOCATIONS).map((province) => (
+                    <option key={province} value={province}>
+                      {province}
+                    </option>
+                  ))}
+                </select>
+                {errors.province && <p className='text-rose-600 text-xs font-medium mt-1'>{errors.province.message}</p>}
+              </div>
+
+              {/* District */}
+              {districts.length > 0 && (
+                <div>
+                  <label htmlFor='district' className='block text-xs sm:text-sm font-semibold text-slate-900 mb-2'>
+                    District
+                    <span className='text-rose-600 ml-1'>*</span>
+                  </label>
+                  <select
+                    {...register('district', {
+                      required: 'District is required',
+                      onChange: handleDistrictChange,
+                    })}
+                    id='district'
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-slate-900 text-xs sm:text-sm font-medium focus:outline-none transition-all shadow-sm cursor-pointer ${
+                      errors.district
+                        ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-100 focus:border-rose-500'
+                        : 'border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                    }`}
+                  >
+                    <option value=''>Select district</option>
+                    {districts.map((district) => (
+                      <option key={district} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.district && (
+                    <p className='text-rose-600 text-xs font-medium mt-1'>{errors.district.message}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Sector */}
+              {sectors.length > 0 && (
+                <div>
+                  <label htmlFor='sector' className='block text-xs sm:text-sm font-semibold text-slate-900 mb-2'>
+                    Sector
+                    <span className='text-rose-600 ml-1'>*</span>
+                  </label>
+                  <select
+                    {...register('sector', {
+                      required: 'Sector is required',
+                    })}
+                    id='sector'
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-slate-900 text-xs sm:text-sm font-medium focus:outline-none transition-all shadow-sm cursor-pointer ${
+                      errors.sector
+                        ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-100 focus:border-rose-500'
+                        : 'border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
+                    }`}
+                  >
+                    <option value=''>Select sector</option>
+                    {sectors.map((sector) => (
+                      <option key={sector} value={sector}>
+                        {sector}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.sector && <p className='text-rose-600 text-xs font-medium mt-1'>{errors.sector.message}</p>}
                 </div>
               )}
             </div>
 
-            {/* District */}
-            {districts.length > 0 && (
-              <div>
-                <label htmlFor='district' className='block text-sm font-semibold text-slate-900 mb-2'>
-                  District
-                  <span className='text-rose-600 ml-1'>*</span>
-                </label>
-                <select
-                  {...register('district', {
-                    required: 'District is required',
-                    onChange: handleDistrictChange,
-                  })}
-                  id='district'
-                  className={`w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm ${
-                    errors.district
-                      ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-100 focus:border-rose-500'
-                      : 'border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
-                  }`}
-                >
-                  <option value=''>Select district</option>
-                  {districts.map((district) => (
-                    <option key={district} value={district}>
-                      {district}
-                    </option>
-                  ))}
-                </select>
-                {errors.district && (
-                  <div className='flex items-center gap-2 mt-2' role='alert'>
-                    <svg className='w-4 h-4 text-rose-600 shrink-0' fill='currentColor' viewBox='0 0 20 20'>
-                      <path
-                        fillRule='evenodd'
-                        d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
-                        clipRule='evenodd'
-                      />
-                    </svg>
-                    <p className='text-rose-700 text-sm font-semibold'>{errors.district.message}</p>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Cell & Village */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4'>
+              {/* Cell */}
+              <FormInput
+                label='Cell'
+                id='cell'
+                type='text'
+                placeholder='e.g., Bibare'
+                register={register}
+                registerOptions={{
+                  required: 'Cell is required',
+                }}
+                error={errors.cell}
+              />
 
-            {/* Sector */}
-            {sectors.length > 0 && (
-              <div>
-                <label htmlFor='sector' className='block text-sm font-semibold text-slate-900 mb-2'>
-                  Sector
-                  <span className='text-rose-600 ml-1'>*</span>
-                </label>
-                <select
-                  {...register('sector', {
-                    required: 'Sector is required',
-                  })}
-                  id='sector'
-                  className={`w-full px-4 py-2.5 border rounded-lg text-slate-900 text-sm font-medium focus:outline-none transition-all shadow-sm ${
-                    errors.sector
-                      ? 'border-rose-300 bg-rose-50 focus:ring-2 focus:ring-rose-100 focus:border-rose-500'
-                      : 'border-slate-200 bg-white hover:border-slate-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100'
-                  }`}
-                >
-                  <option value=''>Select sector</option>
-                  {sectors.map((sector) => (
-                    <option key={sector} value={sector}>
-                      {sector}
-                    </option>
-                  ))}
-                </select>
-                {errors.sector && (
-                  <div className='flex items-center gap-2 mt-2' role='alert'>
-                    <svg className='w-4 h-4 text-rose-600 shrink-0' fill='currentColor' viewBox='0 0 20 20'>
-                      <path
-                        fillRule='evenodd'
-                        d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
-                        clipRule='evenodd'
-                      />
-                    </svg>
-                    <p className='text-rose-700 text-sm font-semibold'>{errors.sector.message}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Cell */}
-            <FormInput
-              label='Cell'
-              id='cell'
-              type='text'
-              placeholder='e.g., Bibare'
-              register={register}
-              registerOptions={{
-                required: 'Cell is required',
-              }}
-              error={errors.cell}
-            />
-
-            {/* Village */}
-            <FormInput
-              label='Village'
-              id='village'
-              type='text'
-              placeholder='e.g., Gashuru'
-              register={register}
-              registerOptions={{
-                required: 'Village is required',
-              }}
-              error={errors.village}
-            />
+              {/* Village */}
+              <FormInput
+                label='Village'
+                id='village'
+                type='text'
+                placeholder='e.g., Gashuru'
+                register={register}
+                registerOptions={{
+                  required: 'Village is required',
+                }}
+                error={errors.village}
+              />
+            </div>
           </div>
 
           {/* Submit Buttons */}
-          <div className='flex gap-3 pt-2'>
+          <div className='flex flex-col sm:flex-row gap-2 sm:gap-3 pt-1'>
             <button
               type='submit'
               disabled={isPending}
-              className='flex-1 rounded-lg bg-sky-700 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 disabled:transform-none disabled:shadow-none'
+              className='flex-1 rounded-lg bg-sky-700 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-white hover:bg-sky-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all cursor-pointer'
             >
-              {isPending ? 'Registering User...' : 'Register User'}
+              {isPending ? 'Registering...' : 'Register'}
             </button>
             <button
               type='button'
@@ -447,10 +431,19 @@ export default function RegisterUserForm() {
                 setSectors([]);
               }}
               disabled={isPending}
-              className='rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed'
+              className='rounded-lg border border-slate-300 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
             >
               Clear
             </button>
+            {isModal && (
+              <button
+                type='button'
+                onClick={onCancel}
+                className='rounded-lg border border-slate-300 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all cursor-pointer'
+              >
+                Close
+              </button>
+            )}
           </div>
         </form>
       </div>
