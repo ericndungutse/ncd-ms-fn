@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { FiActivity, FiClipboard, FiSearch, FiUserPlus } from 'react-icons/fi';
 import RegisterUserForm from '../features/users/RegisterUserForm';
 import RecordAssessmentForm from '../features/assessments/RecordAssessmentForm';
+import CreateDiagnosisForm from '../features/diagnosis/CreateDiagnosisForm';
 import FormInput from '../ui/FormInput';
 import Modal from '../ui/Modal';
 
@@ -65,6 +66,7 @@ export default function DashboardPage() {
   const [searchResult, setSearchResult] = useState(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [isDiagnosisModalOpen, setIsDiagnosisModalOpen] = useState(false);
 
   const foundDiagnosis = useMemo(() => {
     if (!searchResult || !searchResult.patientNumber) return null;
@@ -170,6 +172,7 @@ export default function DashboardPage() {
                 </p>
                 <button
                   type='button'
+                  onClick={() => setIsDiagnosisModalOpen(true)}
                   className='w-full bg-emerald-600 text-white text-sm sm:text-base font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-emerald-700 transition-colors cursor-pointer'
                 >
                   Open form
@@ -204,6 +207,14 @@ export default function DashboardPage() {
 
       <Modal isOpen={isAssessmentModalOpen} onClose={() => setIsAssessmentModalOpen(false)} title='Record assessment'>
         <RecordAssessmentForm onSuccess={() => setIsAssessmentModalOpen(false)} />
+      </Modal>
+
+      <Modal isOpen={isDiagnosisModalOpen} onClose={() => setIsDiagnosisModalOpen(false)} title='Create diagnosis'>
+        <CreateDiagnosisForm
+          mode='modal'
+          onSuccess={() => setIsDiagnosisModalOpen(false)}
+          onCancel={() => setIsDiagnosisModalOpen(false)}
+        />
       </Modal>
     </div>
   );
