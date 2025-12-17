@@ -8,13 +8,42 @@ import { useFetchIndicators } from '../indicators/indicators.queries';
 import { useFetchCampaigns } from '../screeningCampaign/campaigns.queries';
 import { getDiagnosisByPatientNumber } from '../../service/diagnosis.service';
 import { FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
-import { getResponseData } from '../../utils/axios.utils';
+import { getResponseData, getErrorMessage } from '../../utils/axios.utils';
 
 export default function RecordAssessmentForm({ onSuccess }) {
+  const makeKey = (s) =>
+    (s || '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+(.)/g, (_, chr) => chr.toUpperCase());
+
+  const getReadingKey = (reading, idx) => {
+    const label = reading?.name || reading?.type || `Reading ${idx + 1}`;
+    if (/systolic/i.test(label)) return 'systolic';
+    if (/diastolic/i.test(label)) return 'diastolic';
+    return reading?.key || makeKey(label);
+  };
+
+  const getReadingBounds = (key, unit) => {
+    // Provide sensible defaults per reading type
+    if (key === 'systolic') return { min: 50, max: 300, step: 1 };
+    if (key === 'diastolic') return { min: 30, max: 200, step: 1 };
+    if (/glucose|blood|sugar/i.test(key)) return { min: 0, max: 600, step: 1 };
+    if (key === 'weight') return { min: 1, max: 500, step: 0.1 };
+    if (key === 'height') {
+      // If height is in cm, validate accordingly, else fallback
+      if (unit && /cm|centimeter/i.test(unit)) return { min: 30, max: 300, step: 0.1 };
+      return { min: 0.5, max: 3.0, step: 0.01 };
+    }
+    return { min: 0, max: 100000, step: 0.01 };
+  };
   const {
     register,
     handleSubmit,
     reset,
+    setError,
+    setValue,
     formState: { errors: formErrors },
   } = useForm();
 
@@ -24,6 +53,7 @@ export default function RecordAssessmentForm({ onSuccess }) {
   const [diagnosisData, setDiagnosisData] = useState(null);
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
   const [diagnosisError, setDiagnosisError] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
   const { createAssessment, isPending } = useCreateAssessment();
   const { data: indicators } = useFetchIndicators({ fields: 'name,readings' });
@@ -102,7 +132,9 @@ export default function RecordAssessmentForm({ onSuccess }) {
   };
 
   const handleIndicatorChange = (e) => {
-    setSelectedIndicatorId(e.target.value);
+    const val = e.target.value;
+    setSelectedIndicatorId(val);
+    setValue('ncdcIndicatorId', val, { shouldValidate: true, shouldDirty: true });
   };
 
   const onSubmit = (data) => {
@@ -110,32 +142,57 @@ export default function RecordAssessmentForm({ onSuccess }) {
       return;
     }
 
-    // Check if diagnosis has all assessments taken
+    // Block if all required assessments are already taken
     const allTaken = diagnosisData.requiredAssessments?.every((a) => a.taken) ?? false;
     if (allTaken && diagnosisData.requiredAssessments?.length > 0) {
       return;
     }
 
-    // Build readings object
+    // Build readings object keyed by the indicator's reading names/types
     const readings = {};
     if (selectedIndicator?.readings) {
       selectedIndicator.readings.forEach((reading, idx) => {
         const readingLabel = reading.name || reading.type || `Reading ${idx + 1}`;
-        const fieldKey = `reading_${readingLabel}`;
-        const value = data[fieldKey];
-        if (value) {
-          readings[readingLabel] = parseFloat(value);
+        const readingKey = getReadingKey(reading, idx);
+        const fieldKey = `reading_${readingKey}`;
+        const raw = data[fieldKey];
+        if (raw !== undefined && raw !== null && raw !== '') {
+          const num = parseFloat(raw);
+          if (!Number.isNaN(num)) {
+            readings[readingKey] = num;
+          }
         }
       });
     }
 
-    // Build assessment payload
+    // Extract profileId robustly from diagnosis data
+    const profileId =
+      typeof diagnosisData?.profileId === 'string'
+        ? diagnosisData.profileId
+        : diagnosisData?.profileId?._id ||
+          diagnosisData?.profile?._id ||
+          diagnosisData?.profile?.id ||
+          diagnosisData?.profileId?.id;
+
+    if (!profileId) {
+      setSubmitError('Unable to determine profileId from the diagnosis. Please re-search the diagnosis.');
+      return;
+    }
+
+    // Context captures campaign linkage for this assessment
+    const context = data.campaignId
+      ? {
+          type: 'campaign',
+          campaignId: data.campaignId,
+        }
+      : undefined;
+
     const assessmentData = {
-      profile: diagnosisData.profileId?._id,
+      profileId,
       patientNumber: diagnosisData.patientNumber,
       ncdcIndicatorId: selectedIndicatorId,
       readings,
-      screeningCampaignId: data.screeningCampaignId,
+      ...(context ? { context } : {}),
     };
 
     createAssessment(assessmentData, {
@@ -144,8 +201,28 @@ export default function RecordAssessmentForm({ onSuccess }) {
         setPatientNumberInput('');
         setSelectedIndicatorId('');
         setProfileSearched(false);
+        setSubmitError('');
         if (onSuccess) {
           onSuccess();
+        }
+      },
+      onError: (err) => {
+        const data = err?.response?.data;
+        if (data?.errors) {
+          // Map known field errors to form fields or surface as form alert
+          Object.entries(data.errors).forEach(([field, message]) => {
+            if (field === 'ncdcIndicatorId') {
+              setError('ncdcIndicatorId', { type: 'server', message });
+            } else if (field === 'campaignId') {
+              setError('campaignId', { type: 'server', message });
+            } else if (field === 'profileId') {
+              setSubmitError(String(message));
+            } else if (field === 'readings') {
+              setSubmitError(String(message));
+            }
+          });
+        } else {
+          setSubmitError(getErrorMessage(err));
         }
       },
     });
@@ -265,9 +342,9 @@ export default function RecordAssessmentForm({ onSuccess }) {
       {diagnosisData && profileSearched && (
         <>
           {/* Screening Campaign */}
-          <FormGroup label='Screening Campaign' error={formErrors.screeningCampaignId?.message} required>
+          <FormGroup label='Screening Campaign' error={formErrors.campaignId?.message} required>
             <select
-              {...register('screeningCampaignId', { required: 'Campaign is required' })}
+              {...register('campaignId', { required: 'Campaign is required' })}
               className='w-full px-3 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-white text-slate-900'
             >
               <option value=''>Select a campaign</option>
@@ -277,10 +354,14 @@ export default function RecordAssessmentForm({ onSuccess }) {
                 </option>
               ))}
             </select>
+            {formErrors.campaignId?.message && (
+              <p className='mt-2 text-xs text-rose-600'>{formErrors.campaignId.message}</p>
+            )}
           </FormGroup>
 
           {/* Indicator */}
           <FormGroup label='Health Indicator' error={formErrors.ncdcIndicatorId?.message} required>
+            <input type='hidden' {...register('ncdcIndicatorId', { required: 'Indicator is required' })} />
             <select
               value={selectedIndicatorId}
               onChange={handleIndicatorChange}
@@ -293,6 +374,9 @@ export default function RecordAssessmentForm({ onSuccess }) {
                 </option>
               ))}
             </select>
+            {formErrors.ncdcIndicatorId?.message && (
+              <p className='mt-2 text-xs text-rose-600'>{formErrors.ncdcIndicatorId.message}</p>
+            )}
             {hasPendingRequired && (
               <p className='mt-2 text-xs text-slate-600'>Only pending required indicators are shown.</p>
             )}
@@ -307,32 +391,44 @@ export default function RecordAssessmentForm({ onSuccess }) {
                   .filter((reading) => reading && (reading.name || reading.type))
                   .map((reading, idx) => {
                     const readingLabel = reading.name || reading.type || `Reading ${idx + 1}`;
-                    const fieldKey = `reading_${readingLabel}`;
-                    const placeholder = `Enter ${(readingLabel || '').toLowerCase()}`;
+                    const readingKey = getReadingKey(reading, idx);
+                    const fieldKey = `reading_${readingKey}`;
+                    const bounds = getReadingBounds(readingKey, reading.unit);
+                    const unit = reading.unit ? ` (${reading.unit})` : '';
+                    const placeholder = `Enter ${(readingLabel || '').toLowerCase()}${unit ? ` in ${reading.unit}` : ''}`;
                     return (
                       <FormInput
                         key={fieldKey}
-                        label={`${readingLabel}${reading.unit ? ` (${reading.unit})` : ''}`}
+                        label={`${readingLabel}${unit}`}
                         type='number'
-                        step='any'
+                        step={bounds.step}
                         placeholder={placeholder}
                         {...register(fieldKey, {
                           required: `${readingLabel} is required`,
-                          min: {
-                            value: reading.min ?? 0,
-                            message: `Minimum value is ${reading.min ?? 0}`,
-                          },
-                          max: {
-                            value: reading.max ?? 1000,
-                            message: `Maximum value is ${reading.max ?? 1000}`,
+                          min: { value: bounds.min, message: `Minimum value is ${bounds.min}` },
+                          max: { value: bounds.max, message: `Maximum value is ${bounds.max}` },
+                          validate: (v) => {
+                            const num = parseFloat(v);
+                            if (Number.isNaN(num)) return 'Value must be a number';
+                            return true;
                           },
                         })}
-                        error={formErrors[fieldKey]?.message}
+                        error={formErrors[fieldKey]}
                         required
                       />
                     );
                   })}
               </div>
+              {selectedIndicator?.name?.toLowerCase() === 'bmi' && (
+                <p className='text-xs text-slate-600'>Note: Enter height in centimeters (cm).</p>
+              )}
+            </div>
+          )}
+
+          {/* Submit error alert */}
+          {submitError && (
+            <div className='rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800'>
+              {submitError}
             </div>
           )}
 
