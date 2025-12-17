@@ -20,9 +20,12 @@ export default function RecordAssessmentForm({ onSuccess }) {
 
   const getReadingKey = (reading, idx) => {
     const label = reading?.name || reading?.type || `Reading ${idx + 1}`;
-    if (/systolic/i.test(label)) return 'systolic';
-    if (/diastolic/i.test(label)) return 'diastolic';
-    return reading?.key || makeKey(label);
+    if (/systolic/i.test(label)) return 'systolic_blood_pressure';
+    if (/diastolic/i.test(label)) return 'diastolic_blood_pressure';
+    // For other readings, convert to snake_case
+    const key = reading?.key || makeKey(label);
+    // Convert camelCase to snake_case (e.g., randomBloodGlucose -> random_blood_glucose)
+    return key.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
   };
 
   const getReadingBounds = (key, unit) => {
@@ -187,12 +190,16 @@ export default function RecordAssessmentForm({ onSuccess }) {
         }
       : undefined;
 
+    // New payload structure: ncdIndicator object wraps indicator details and readings
     const assessmentData = {
       profileId,
       patientNumber: diagnosisData.patientNumber,
-      ncdcIndicatorId: selectedIndicatorId,
-      readings,
-      ...(context ? { context } : {}),
+      context: context || undefined,
+      ncdIndicator: {
+        ncdIndicatorId: selectedIndicatorId,
+        name: selectedIndicator?.name,
+        readings,
+      },
     };
 
     createAssessment(assessmentData, {
