@@ -3,9 +3,11 @@ import { useForm } from 'react-hook-form';
 import FormGroup from '../../ui/FormGroup';
 import FormInput from '../../ui/FormInput';
 import FormButton from '../../ui/FormButton';
-import { useCreateAssessment, useFetchProfileByPatientNumber } from './assessments.queries';
+import { useCreateAssessment } from './assessments.queries';
 import { useFetchIndicators } from '../indicators/indicators.queries';
 import { useFetchCampaigns } from '../screeningCampaign/campaigns.queries';
+import { getDiagnosisByPatientNumber } from '../../service/diagnosis.service';
+import { FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
 import { getResponseData } from '../../utils/axios.utils';
 
 export default function RecordAssessmentForm({ onSuccess }) {
@@ -19,23 +21,19 @@ export default function RecordAssessmentForm({ onSuccess }) {
   const [patientNumberInput, setPatientNumberInput] = useState('');
   const [selectedIndicatorId, setSelectedIndicatorId] = useState('');
   const [profileSearched, setProfileSearched] = useState(false);
+  const [diagnosisData, setDiagnosisData] = useState(null);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+  const [diagnosisError, setDiagnosisError] = useState('');
 
   const { createAssessment, isPending } = useCreateAssessment();
   const { data: indicators } = useFetchIndicators({ fields: 'name,readings' });
   const { data: campaignsRaw } = useFetchCampaigns();
 
   // Fetch profile when patient number is entered
-  const normalizedPatientNumber = useMemo(() => {
-    const trimmed = patientNumberInput.trim();
-    if (!trimmed) return '';
-    // pad numeric patient numbers to 8 digits (API returns like 00000007)
-    return /^[0-9]+$/.test(trimmed) ? trimmed.padStart(8, '0') : trimmed;
-  }, [patientNumberInput]);
-
-  const { profile, isLoading: isLoadingProfile, error: profileError } = useFetchProfileByPatientNumber(
-    normalizedPatientNumber,
-    { enabled: profileSearched }
-  );
+  // Legacy profile search removed; we rely solely on diagnosis lookup
+  const isLoadingProfile = false;
+  const profile = null;
+  const profileError = null;
 
   // Compute selected indicator
   const selectedIndicator = useMemo(() => {
@@ -45,13 +43,61 @@ export default function RecordAssessmentForm({ onSuccess }) {
     return null;
   }, [selectedIndicatorId, indicators]);
 
+  // Indicators available for selection: if diagnosis has pending required assessments,
+  // show only those pending indicators; otherwise show all indicators
+  const availableIndicators = useMemo(() => {
+    if (!indicators) return [];
+    const pendingNames = (diagnosisData?.requiredAssessments || [])
+      .filter((a) => !a.taken)
+      .map((a) => a.indicator?.name)
+      .filter(Boolean);
+    if (pendingNames.length > 0) {
+      return indicators.filter((ind) => pendingNames.includes(ind.name));
+    }
+    return indicators;
+  }, [indicators, diagnosisData]);
+
+  const hasPendingRequired = useMemo(() => {
+    return (diagnosisData?.requiredAssessments || []).some((a) => !a.taken);
+  }, [diagnosisData]);
+
   const campaigns = useMemo(() => {
     return getResponseData(campaignsRaw)?.data?.campaigns || getResponseData(campaignsRaw)?.data || [];
   }, [campaignsRaw]);
 
-  const handlePatientNumberSearch = () => {
-    if (patientNumberInput.trim()) {
-      setProfileSearched(true);
+  const handlePatientNumberSearch = async () => {
+    const trimmed = patientNumberInput.trim();
+    if (!trimmed) return;
+
+    try {
+      setDiagnosisLoading(true);
+      setDiagnosisError('');
+      setDiagnosisData(null);
+      setProfileSearched(false);
+
+      // Search for diagnosis only
+      const response = await getDiagnosisByPatientNumber(trimmed);
+      const diagnosis = response?.data?.data?.diagnosis || response?.data?.diagnosis || response?.data;
+
+      if (diagnosis) {
+        setDiagnosisData(diagnosis);
+        // Check if all required assessments are taken
+        const allTaken = diagnosis.requiredAssessments?.every((a) => a.taken) ?? false;
+        if (allTaken && diagnosis.requiredAssessments?.length > 0) {
+          setDiagnosisError(
+            'All required assessments for this diagnosis have been completed. Cannot record additional assessments.'
+          );
+          return;
+        }
+        // Diagnosis found and has pending assessments - proceed
+        setProfileSearched(true);
+      } else {
+        setDiagnosisError('No diagnosis found for this patient number');
+      }
+    } catch (err) {
+      setDiagnosisError(err?.response?.data?.message || 'Error checking diagnosis');
+    } finally {
+      setDiagnosisLoading(false);
     }
   };
 
@@ -60,7 +106,13 @@ export default function RecordAssessmentForm({ onSuccess }) {
   };
 
   const onSubmit = (data) => {
-    if (!profile) {
+    if (!diagnosisData) {
+      return;
+    }
+
+    // Check if diagnosis has all assessments taken
+    const allTaken = diagnosisData.requiredAssessments?.every((a) => a.taken) ?? false;
+    if (allTaken && diagnosisData.requiredAssessments?.length > 0) {
       return;
     }
 
@@ -79,8 +131,8 @@ export default function RecordAssessmentForm({ onSuccess }) {
 
     // Build assessment payload
     const assessmentData = {
-      profile: profile.userId,
-      patientNumber: profile.patientNumber,
+      profile: diagnosisData.profileId?._id,
+      patientNumber: diagnosisData.patientNumber,
       ncdcIndicatorId: selectedIndicatorId,
       readings,
       screeningCampaignId: data.screeningCampaignId,
@@ -106,7 +158,7 @@ export default function RecordAssessmentForm({ onSuccess }) {
         <div className='flex gap-3'>
           <div className='flex-1'>
             <FormInput
-              label='Patient Number'
+              label='Patient Number (to find diagnosis)'
               type='text'
               placeholder='Enter patient number'
               value={patientNumberInput}
@@ -115,55 +167,102 @@ export default function RecordAssessmentForm({ onSuccess }) {
                 setProfileSearched(false);
               }}
               required
-              required
             />
           </div>
           <div className='flex items-end'>
             <button
               type='button'
               onClick={handlePatientNumberSearch}
-              disabled={!patientNumberInput.trim() || isLoadingProfile}
+              disabled={!patientNumberInput.trim() || diagnosisLoading}
               className='px-4 py-3 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium'
             >
-              {isLoadingProfile ? 'Searching...' : 'Search'}
+              {diagnosisLoading ? 'Checking Diagnosis...' : 'Search Diagnosis'}
             </button>
           </div>
         </div>
 
-        {/* Profile not found / errors */}
-        {profileSearched && !profile && profileError && (
-          <div className='p-4 border border-rose-200 bg-rose-50 rounded-lg text-sm text-rose-700 font-medium'>
-            {profileError}
+        {/* Diagnosis Error - All assessments complete */}
+        {diagnosisError && (
+          <div className='rounded-xl border border-amber-200 bg-amber-50 p-4'>
+            <div className='flex items-start gap-3'>
+              <FiAlertCircle className='w-5 h-5 text-amber-700 shrink-0' />
+              <div>
+                <p className='text-sm font-semibold text-amber-900'>Assessment Requirements Complete</p>
+                <p className='text-xs sm:text-sm text-amber-800 mt-1'>Diagnosis Status: {diagnosisError}</p>
+              </div>
+            </div>
+            {diagnosisData && diagnosisData.requiredAssessments && diagnosisData.requiredAssessments.length > 0 && (
+              <div className='mt-3'>
+                <p className='text-sm font-medium text-amber-900'>Completed Assessments</p>
+                <ul className='mt-2 space-y-2'>
+                  {diagnosisData.requiredAssessments.map((a, idx) => (
+                    <li
+                      key={idx}
+                      className='flex items-start justify-between gap-3 bg-white rounded-lg border border-amber-100 px-3 py-2'
+                    >
+                      <div className='flex items-center gap-2'>
+                        <FiCheckCircle className='w-4 h-4 text-green-600 shrink-0' />
+                        <span className='text-slate-900 text-xs sm:text-sm font-medium'>
+                          {a.indicator?.name || 'Unknown'}
+                        </span>
+                      </div>
+                      {a.assessmentId?.classification && (
+                        <span className='text-xs sm:text-sm text-amber-700'>{a.assessmentId.classification}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
- 
-         {/* Patient Info Display */}
-         {profile && profileSearched && (
-           <div className='p-4 bg-teal-50 border border-teal-200 rounded-lg'>
-             <p className='text-sm font-semibold text-teal-900 mb-2'>Patient Found:</p>
-             <div className='grid grid-cols-2 gap-2 text-sm'>
-               <div>
-                 <span className='text-teal-700'>Name:</span>{' '}
-                 <span className='font-medium text-teal-900'>
-                   {profile.firstName} {profile.lastName}
-                 </span>
-               </div>
-               <div>
-                 <span className='text-teal-700'>Phone:</span>{' '}
-                 <span className='font-medium text-teal-900'>{profile.phoneNumber}</span>
-               </div>
-               <div>
-                 <span className='text-teal-700'>Address:</span>{' '}
-                 <span className='font-medium text-teal-900'>
-                   {profile.address?.sector}, {profile.address?.district}
-                 </span>
-               </div>
-             </div>
-           </div>
-         )}
-       </div>
-      {/* Only show the rest of the form if profile is found */}
-      {profile && profileSearched && (
+
+        {/* Profile search removed */}
+
+        {/* Diagnosis Info Display */}
+        {diagnosisData && profileSearched && (
+          <div className='p-4 bg-emerald-50 border border-emerald-200 rounded-lg'>
+            <p className='text-sm font-semibold text-emerald-900 mb-2'>Diagnosis Found:</p>
+            <div className='grid grid-cols-2 gap-2 text-sm'>
+              <div>
+                <span className='text-emerald-700'>Patient:</span>{' '}
+                <span className='font-medium text-emerald-900'>
+                  {diagnosisData.profileId?.firstName} {diagnosisData.profileId?.lastName}
+                </span>
+              </div>
+              <div>
+                <span className='text-emerald-700'>Patient #:</span>{' '}
+                <span className='font-medium text-emerald-900'>{diagnosisData.patientNumber}</span>
+              </div>
+              <div>
+                <span className='text-emerald-700'>Status:</span>{' '}
+                <span className='font-medium text-emerald-900 capitalize'>{diagnosisData.status}</span>
+              </div>
+            </div>
+            {diagnosisData.requiredAssessments && diagnosisData.requiredAssessments.length > 0 && (
+              <div className='mt-4 pt-4 border-t border-emerald-200'>
+                <p className='text-sm font-semibold text-emerald-900 mb-2'>Required Assessments:</p>
+                <div className='space-y-2'>
+                  {diagnosisData.requiredAssessments.map((assessment, idx) => (
+                    <div key={idx} className='flex items-center justify-between text-xs'>
+                      <span className='text-emerald-700'>{assessment.indicator?.name || 'Unknown'}</span>
+                      <span
+                        className={`px-2 py-1 rounded font-medium ${
+                          assessment.taken ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {assessment.taken ? 'Done' : 'Pending'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {/* Only show the rest of the form if diagnosis is found */}
+      {diagnosisData && profileSearched && (
         <>
           {/* Screening Campaign */}
           <FormGroup label='Screening Campaign' error={formErrors.screeningCampaignId?.message} required>
@@ -188,12 +287,15 @@ export default function RecordAssessmentForm({ onSuccess }) {
               className='w-full px-3 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-white text-slate-900'
             >
               <option value=''>Select an indicator</option>
-              {indicators?.map((indicator) => (
+              {availableIndicators?.map((indicator) => (
                 <option key={indicator._id} value={indicator._id}>
                   {indicator.name}
                 </option>
               ))}
             </select>
+            {hasPendingRequired && (
+              <p className='mt-2 text-xs text-slate-600'>Only pending required indicators are shown.</p>
+            )}
           </FormGroup>
 
           {/* Readings */}

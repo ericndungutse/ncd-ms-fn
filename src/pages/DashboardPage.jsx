@@ -1,34 +1,13 @@
-import { useMemo, useState } from 'react';
-import { FiActivity, FiClipboard, FiSearch, FiUserPlus } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiActivity, FiClipboard, FiSearch, FiUserPlus, FiAlertCircle, FiLoader } from 'react-icons/fi';
 import RegisterUserForm from '../features/users/RegisterUserForm';
 import RecordAssessmentForm from '../features/assessments/RecordAssessmentForm';
 import CreateDiagnosisForm from '../features/diagnosis/CreateDiagnosisForm';
 import FormInput from '../ui/FormInput';
 import Modal from '../ui/Modal';
-
-const mockDiagnoses = [
-  {
-    patientNumber: 'PAT-001',
-    name: 'Amina Bello',
-    diagnosis: 'Acute malaria',
-    status: 'Under observation',
-    updated: 'Today - 08:45',
-  },
-  {
-    patientNumber: 'PAT-118',
-    name: 'John Adeyemi',
-    diagnosis: 'Suspected pneumonia',
-    status: 'Admitted',
-    updated: 'Yesterday - 19:10',
-  },
-  {
-    patientNumber: 'PAT-204',
-    name: 'Ngozi Okafor',
-    diagnosis: 'Hypertension follow-up',
-    status: 'Outpatient review',
-    updated: 'Today - 10:05',
-  },
-];
+import { getProfileByPatientNumber } from '../service/assessments.service';
+import { getDiagnosisByPatientNumber } from '../service/diagnosis.service';
+import { getErrorMessage } from '../utils/axios.utils';
 
 function ActionCard({ title, icon: Icon, children }) {
   return (
@@ -64,39 +43,68 @@ function FeedbackNote({ tone = 'info', message }) {
 export default function DashboardPage() {
   const [searchPatientNumber, setSearchPatientNumber] = useState('');
   const [patientSearchResult, setPatientSearchResult] = useState(null);
+  const [patientLoading, setPatientLoading] = useState(false);
+  const [patientError, setPatientError] = useState('');
+  const [patientProfile, setPatientProfile] = useState(null);
   const [searchDiagnosisNumber, setSearchDiagnosisNumber] = useState('');
   const [diagnosisSearchResult, setDiagnosisSearchResult] = useState(null);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+  const [diagnosisError, setDiagnosisError] = useState('');
+  const [diagnosisData, setDiagnosisData] = useState(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [isDiagnosisModalOpen, setIsDiagnosisModalOpen] = useState(false);
 
-  const foundDiagnosis = useMemo(() => {
-    if (!diagnosisSearchResult || !diagnosisSearchResult.patientNumber) return null;
-    return mockDiagnoses.find(
-      (entry) => entry.patientNumber.toUpperCase() === diagnosisSearchResult.patientNumber.toUpperCase()
-    );
-  }, [diagnosisSearchResult]);
-
-  const handleSearchPatient = (event) => {
+  const handleSearchPatient = async (event) => {
     event.preventDefault();
-    const trimmed = searchPatientNumber.trim().toUpperCase();
+    const trimmed = searchPatientNumber.trim();
     if (!trimmed) {
       setPatientSearchResult({ patientNumber: '', status: 'empty' });
+      setPatientProfile(null);
+      setPatientError('');
       return;
     }
-
-    setPatientSearchResult({ patientNumber: trimmed, status: 'searched' });
+    try {
+      setPatientLoading(true);
+      setPatientError('');
+      setPatientProfile(null);
+      const response = await getProfileByPatientNumber(trimmed);
+      const data = response?.data?.data || response?.data;
+      setPatientProfile(data || null);
+      setPatientSearchResult({ patientNumber: trimmed, status: 'searched' });
+    } catch (err) {
+      setPatientError(getErrorMessage(err));
+      setPatientProfile(null);
+      setPatientSearchResult({ patientNumber: trimmed, status: 'searched' });
+    } finally {
+      setPatientLoading(false);
+    }
   };
 
-  const handleSearchDiagnosis = (event) => {
+  const handleSearchDiagnosis = async (event) => {
     event.preventDefault();
-    const trimmed = searchDiagnosisNumber.trim().toUpperCase();
+    const trimmed = searchDiagnosisNumber.trim();
     if (!trimmed) {
       setDiagnosisSearchResult({ patientNumber: '', status: 'empty' });
+      setDiagnosisData(null);
+      setDiagnosisError('');
       return;
     }
-
-    setDiagnosisSearchResult({ patientNumber: trimmed, status: 'searched' });
+    try {
+      setDiagnosisLoading(true);
+      setDiagnosisError('');
+      setDiagnosisData(null);
+      const response = await getDiagnosisByPatientNumber(trimmed);
+      const data = response?.data?.data?.diagnosis || response?.data?.diagnosis || response?.data;
+      setDiagnosisData(data || null);
+      setDiagnosisSearchResult({ patientNumber: trimmed, status: 'searched' });
+    } catch (err) {
+      setDiagnosisError(getErrorMessage(err));
+      setDiagnosisData(null);
+      setDiagnosisSearchResult({ patientNumber: trimmed, status: 'searched' });
+    } finally {
+      setDiagnosisLoading(false);
+    }
   };
 
   return (
@@ -172,7 +180,46 @@ export default function DashboardPage() {
               </button>
             </form>
             {patientSearchResult?.status === 'empty' && (
-              <p className='text-xs text-amber-600 mt-2'>Please enter a patient number</p>
+              <div className='mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 flex items-center gap-2'>
+                <FiAlertCircle className='w-4 h-4 shrink-0' />
+                <span>Please enter a patient number</span>
+              </div>
+            )}
+            {patientLoading && (
+              <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 flex items-center gap-2'>
+                <FiLoader className='w-4 h-4 shrink-0 animate-spin' />
+                <span>Searching…</span>
+              </div>
+            )}
+            {!patientLoading && patientError && (
+              <div className='mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800 flex items-center gap-2'>
+                <FiAlertCircle className='w-4 h-4 shrink-0' />
+                <span>{patientError}</span>
+              </div>
+            )}
+            {!patientLoading && patientProfile && (
+              <div className='mt-3 bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-2'>
+                <div className='flex justify-between text-sm'>
+                  <span className='text-slate-600'>Name:</span>
+                  <span className='font-medium text-slate-900'>
+                    {patientProfile.firstName} {patientProfile.lastName}
+                  </span>
+                </div>
+                <div className='flex justify-between text-sm'>
+                  <span className='text-slate-600'>Patient #:</span>
+                  <span className='font-medium text-slate-900'>{patientProfile.patientNumber}</span>
+                </div>
+                <div className='flex justify-between text-sm'>
+                  <span className='text-slate-600'>Phone:</span>
+                  <span className='font-medium text-slate-900'>{patientProfile.phoneNumber || '—'}</span>
+                </div>
+                <div className='flex justify-between text-sm'>
+                  <span className='text-slate-600'>Address:</span>
+                  <span className='font-medium text-slate-900 text-right'>
+                    {patientProfile.address?.district}, {patientProfile.address?.sector}
+                  </span>
+                </div>
+              </div>
             )}
           </div>
 
@@ -196,29 +243,71 @@ export default function DashboardPage() {
               </button>
             </form>
             {diagnosisSearchResult?.status === 'empty' && (
-              <p className='text-xs text-amber-600'>Please enter a patient number</p>
+              <div className='mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 flex items-center gap-2'>
+                <FiAlertCircle className='w-4 h-4 shrink-0' />
+                <span>Please enter a patient number</span>
+              </div>
             )}
-            {diagnosisSearchResult?.status === 'searched' && !foundDiagnosis && (
-              <p className='text-xs text-slate-600'>No diagnosis found for {diagnosisSearchResult.patientNumber}</p>
+            {diagnosisLoading && (
+              <div className='mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 flex items-center gap-2'>
+                <FiLoader className='w-4 h-4 shrink-0 animate-spin' />
+                <span>Searching diagnosis…</span>
+              </div>
             )}
-            {foundDiagnosis && (
-              <div className='bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-2'>
-                <div className='flex justify-between text-sm'>
-                  <span className='text-slate-600'>Name:</span>
-                  <span className='font-medium text-slate-900'>{foundDiagnosis.name}</span>
-                </div>
+            {!diagnosisLoading && diagnosisError && (
+              <div className='mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800 flex items-center gap-2'>
+                <FiAlertCircle className='w-4 h-4 shrink-0' />
+                <span>{diagnosisError}</span>
+              </div>
+            )}
+            {!diagnosisLoading && diagnosisData && (
+              <div className='mt-3 bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3'>
+                {diagnosisData.profileId && (
+                  <div className='flex justify-between text-sm'>
+                    <span className='text-slate-600'>Patient:</span>
+                    <span className='font-medium text-slate-900'>
+                      {diagnosisData.profileId.firstName} {diagnosisData.profileId.lastName}
+                    </span>
+                  </div>
+                )}
                 <div className='flex justify-between text-sm'>
                   <span className='text-slate-600'>Patient #:</span>
-                  <span className='font-medium text-slate-900'>{foundDiagnosis.patientNumber}</span>
+                  <span className='font-medium text-slate-900'>{diagnosisData.patientNumber}</span>
                 </div>
-                <div className='flex justify-between text-sm'>
-                  <span className='text-slate-600'>Diagnosis:</span>
-                  <span className='font-medium text-slate-900 text-right'>{foundDiagnosis.diagnosis}</span>
-                </div>
-                <div className='flex justify-between text-sm'>
-                  <span className='text-slate-600'>Status:</span>
-                  <span className='font-medium text-emerald-700'>{foundDiagnosis.status}</span>
-                </div>
+                {diagnosisData.status && (
+                  <div className='flex justify-between text-sm'>
+                    <span className='text-slate-600'>Status:</span>
+                    <span className='font-medium text-emerald-700 capitalize'>{diagnosisData.status}</span>
+                  </div>
+                )}
+                {diagnosisData.requiredAssessments && diagnosisData.requiredAssessments.length > 0 && (
+                  <div className='text-sm'>
+                    <div className='text-slate-600 font-medium mb-2'>Required Assessments:</div>
+                    <div className='space-y-2'>
+                      {diagnosisData.requiredAssessments.map((assessment, idx) => (
+                        <div key={idx} className='bg-white rounded p-2.5 text-xs space-y-1'>
+                          <div className='flex justify-between items-center'>
+                            <span className='font-medium text-slate-900'>
+                              {assessment.indicator?.name || 'Unknown'}
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded font-medium ${
+                                assessment.taken ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                              }`}
+                            >
+                              {assessment.taken ? 'Done' : 'Pending'}
+                            </span>
+                          </div>
+                          {assessment.assessmentId?.classification && (
+                            <div className='text-slate-700 pt-1'>
+                              <span className='font-medium'>Result:</span> {assessment.assessmentId.classification}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             <button
@@ -247,7 +336,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Modals */}
-      <Modal isOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)} title='Register user'>
+      <Modal
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        title='Register user'
+        description='Create a new user account'
+        size='xl'
+      >
         <RegisterUserForm
           mode='modal'
           onSuccess={() => setIsUserModalOpen(false)}
@@ -255,11 +350,23 @@ export default function DashboardPage() {
         />
       </Modal>
 
-      <Modal isOpen={isAssessmentModalOpen} onClose={() => setIsAssessmentModalOpen(false)} title='Record assessment'>
+      <Modal
+        isOpen={isAssessmentModalOpen}
+        onClose={() => setIsAssessmentModalOpen(false)}
+        title='Record assessment'
+        description='Search diagnosis and record pending indicators'
+        size='lg'
+      >
         <RecordAssessmentForm onSuccess={() => setIsAssessmentModalOpen(false)} />
       </Modal>
 
-      <Modal isOpen={isDiagnosisModalOpen} onClose={() => setIsDiagnosisModalOpen(false)} title='Create diagnosis'>
+      <Modal
+        isOpen={isDiagnosisModalOpen}
+        onClose={() => setIsDiagnosisModalOpen(false)}
+        title='Create diagnosis'
+        description='Create a diagnosis for a patient'
+        size='lg'
+      >
         <CreateDiagnosisForm
           mode='modal'
           onSuccess={() => setIsDiagnosisModalOpen(false)}
