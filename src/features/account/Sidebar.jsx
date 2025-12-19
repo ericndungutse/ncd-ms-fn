@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiActivity, FiDatabase, FiLogOut, FiMapPin, FiMenu, FiUsers, FiX } from 'react-icons/fi';
+import { FiActivity, FiDatabase, FiLogOut, FiMapPin, FiUsers, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { RiDashboard2Line } from 'react-icons/ri';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/auth.hooks';
@@ -8,8 +8,8 @@ export default function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdmin, isAdmissionStaff, isScreeningVolunteer } = useAuth();
-  
+  const { isAdmin } = useAuth();
+
   const handleLogout = () => {
     navigate('/login', { replace: true });
   };
@@ -32,10 +32,10 @@ export default function Sidebar() {
   return (
     <aside
       className={`${
-        sidebarOpen ? 'w-64' : 'w-20'
+        sidebarOpen ? 'w-48' : 'w-20'
       } sticky top-0 h-screen flex-col gap-6 overflow-y-auto border-r border-slate-200 bg-white transition-all duration-300 flex`}
     >
-      <div className='flex items-center justify-between p-5'>
+      <div className='flex items-center p-5'>
         <Link to='/dashboard' className='flex items-center gap-2 group'>
           {sidebarOpen ? (
             <div className='flex items-center gap-3'>
@@ -53,13 +53,6 @@ export default function Sidebar() {
             </div>
           )}
         </Link>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className='rounded-lg p-2 hover:bg-slate-50 transition-colors border border-slate-200 bg-white'
-          aria-label='Toggle sidebar'
-        >
-          {sidebarOpen ? <FiX className='h-5 w-5 text-slate-600' /> : <FiMenu className='h-5 w-5 text-slate-600' />}
-        </button>
       </div>
 
       <nav className='flex-1 space-y-1 px-3'>
