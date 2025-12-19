@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import App from './App.jsx';
 import { BrowserRouter } from 'react-router-dom';
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 0,

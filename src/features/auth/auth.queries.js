@@ -20,7 +20,6 @@ export function useLogin() {
         message,
         data: { token, user },
       } = getResponseData(response);
-      localStorage.setItem('token', token);
       queryClient.setQueryData(['user'], { token: token, user: user });
       navigate('/dashboard', { replace: true });
       toast.success(message);

@@ -5,5 +5,5 @@ export const getCampaigns = () => {
 };
 
 export const createCampaign = (campaignData) => {
-  return apiClient.post('/screening-campaigns', campaignData);
+  return apiClient().post('/screening-campaigns', campaignData);
 };

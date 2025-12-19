@@ -10,6 +10,7 @@ import DashboardPage from './pages/DashboardPage';
 import IndicatorsPage from './pages/IndicatorsPage';
 import LoginPage from './pages/LoginPage';
 import UsersPage from './pages/UsersPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -19,7 +20,14 @@ function App() {
       <Route path='/' element={<Navigate to='/login' replace />} />
 
       {/* Protected Layout */}
-      <Route path='/' element={<Account />}>
+      <Route
+        path='/'
+        element={
+          <ProtectedRoute>
+            <Account />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<Navigate replace to='dashboard' />} />
         <Route path='dashboard' element={<DashboardPage />} />
 

@@ -1,14 +1,13 @@
 import { Navigate } from 'react-router-dom';
+import { useUser } from '../features/auth/auth.hooks';
 // import LoadingSpinner from '../ui/LoadingSpinner';
 
 const ProtectedRoute = ({ children }) => {
-  // if (isLoading) {
-  //   return <LoadingSpinner />;
-  // }
+  const user = useUser();
 
-  // if (isError || !user) {
-  //   return <Navigate to='/' replace />;
-  // }
+  if (!user || !user.token) {
+    return <Navigate to='/login' replace />;
+  }
 
   return children;
 };
