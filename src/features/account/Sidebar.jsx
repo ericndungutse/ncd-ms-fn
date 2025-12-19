@@ -2,23 +2,26 @@ import { useState } from 'react';
 import { FiActivity, FiDatabase, FiLogOut, FiMapPin, FiMenu, FiUsers, FiX } from 'react-icons/fi';
 import { RiDashboard2Line } from 'react-icons/ri';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/auth.hooks';
 
 export default function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdmin, isAdmissionStaff, isScreeningVolunteer } = useAuth();
+  
   const handleLogout = () => {
     navigate('/login', { replace: true });
   };
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: RiDashboard2Line, show: true },
-    { path: '/assessments', label: 'Assessments', icon: FiActivity, show: true },
+    { path: '/assessments', label: 'Assessments', icon: FiActivity, show: isAdmin },
     // { path: '/assessments/record', label: 'Record Assessment', icon: FiActivity, show: true },
     { path: '/campaigns', label: 'Campaigns', icon: FiMapPin, show: true },
     // { path: '/campaigns/create', label: 'Create Campaign', icon: FiMapPin, show: true },
     { path: '/indicators', label: 'Indicators', icon: FiDatabase, show: true },
-    { path: '/users', label: 'Users', icon: FiUsers, show: true },
+    { path: '/users', label: 'Users', icon: FiUsers, show: isAdmin },
   ];
 
   const visibleNavItems = navItems.filter((item) => item.show);

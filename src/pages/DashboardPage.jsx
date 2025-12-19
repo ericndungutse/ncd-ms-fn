@@ -8,6 +8,7 @@ import Modal from '../ui/Modal';
 import { getProfileByPatientNumber } from '../service/assessments.service';
 import { getDiagnosisByPatientNumber } from '../service/diagnosis.service';
 import { getErrorMessage } from '../utils/axios.utils';
+import { useAuth } from '../features/auth/auth.hooks';
 
 function ActionCard({ title, icon: Icon, children }) {
   return (
@@ -41,6 +42,7 @@ function FeedbackNote({ tone = 'info', message }) {
 }
 
 export default function DashboardPage() {
+  const { isAdmin, isAdmissionStaff, isScreeningVolunteer } = useAuth();
   const [searchPatientNumber, setSearchPatientNumber] = useState('');
   const [patientSearchResult, setPatientSearchResult] = useState(null);
   const [patientLoading, setPatientLoading] = useState(false);
@@ -118,44 +120,50 @@ export default function DashboardPage() {
 
         {/* Primary Actions */}
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8'>
-          <button
-            onClick={() => setIsAssessmentModalOpen(true)}
-            className='group bg-white border border-slate-200 rounded-xl p-4 sm:p-5 flex items-center gap-3 hover:border-sky-300 hover:shadow-sm transition cursor-pointer'
-          >
-            <span className='w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center'>
-              <FiClipboard className='w-5 h-5 text-sky-600' />
-            </span>
-            <div className='text-left'>
-              <div className='text-sm font-semibold text-slate-900'>Record Assessment</div>
-              <div className='text-xs text-slate-600'>Capture patient vitals</div>
-            </div>
-          </button>
+          {(isAdmin || isScreeningVolunteer) && (
+            <button
+              onClick={() => setIsAssessmentModalOpen(true)}
+              className='group bg-white border border-slate-200 rounded-xl p-4 sm:p-5 flex items-center gap-3 hover:border-sky-300 hover:shadow-sm transition cursor-pointer'
+            >
+              <span className='w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center'>
+                <FiClipboard className='w-5 h-5 text-sky-600' />
+              </span>
+              <div className='text-left'>
+                <div className='text-sm font-semibold text-slate-900'>Record Assessment</div>
+                <div className='text-xs text-slate-600'>Capture patient vitals</div>
+              </div>
+            </button>
+          )}
 
-          <button
-            onClick={() => setIsDiagnosisModalOpen(true)}
-            className='group bg-white border border-slate-200 rounded-xl p-4 sm:p-5 flex items-center gap-3 hover:border-emerald-300 hover:shadow-sm transition cursor-pointer'
-          >
-            <span className='w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center'>
-              <FiActivity className='w-5 h-5 text-emerald-600' />
-            </span>
-            <div className='text-left'>
-              <div className='text-sm font-semibold text-slate-900'>Create Diagnosis</div>
-              <div className='text-xs text-slate-600'>Assign required assessments</div>
-            </div>
-          </button>
+          {(isAdmin || isAdmissionStaff) && (
+            <button
+              onClick={() => setIsDiagnosisModalOpen(true)}
+              className='group bg-white border border-slate-200 rounded-xl p-4 sm:p-5 flex items-center gap-3 hover:border-emerald-300 hover:shadow-sm transition cursor-pointer'
+            >
+              <span className='w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center'>
+                <FiActivity className='w-5 h-5 text-emerald-600' />
+              </span>
+              <div className='text-left'>
+                <div className='text-sm font-semibold text-slate-900'>Create Diagnosis</div>
+                <div className='text-xs text-slate-600'>Assign required assessments</div>
+              </div>
+            </button>
+          )}
 
-          <button
-            onClick={() => setIsUserModalOpen(true)}
-            className='group bg-white border border-slate-200 rounded-xl p-4 sm:p-5 flex items-center gap-3 hover:border-blue-300 hover:shadow-sm transition cursor-pointer'
-          >
-            <span className='w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center'>
-              <FiUserPlus className='w-5 h-5 text-blue-600' />
-            </span>
-            <div className='text-left'>
-              <div className='text-sm font-semibold text-slate-900'>Register User</div>
-              <div className='text-xs text-slate-600'>Create a patient record</div>
-            </div>
-          </button>
+          {(isAdmin || isAdmissionStaff || isScreeningVolunteer) && (
+            <button
+              onClick={() => setIsUserModalOpen(true)}
+              className='group bg-white border border-slate-200 rounded-xl p-4 sm:p-5 flex items-center gap-3 hover:border-blue-300 hover:shadow-sm transition cursor-pointer'
+            >
+              <span className='w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center'>
+                <FiUserPlus className='w-5 h-5 text-blue-600' />
+              </span>
+              <div className='text-left'>
+                <div className='text-sm font-semibold text-slate-900'>Register User</div>
+                <div className='text-xs text-slate-600'>Create a patient record</div>
+              </div>
+            </button>
+          )}
         </div>
 
         {/* Content Cards */}
@@ -318,20 +326,22 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Assessments */}
-          <div className='bg-white rounded-xl border border-slate-200 p-5 sm:p-6'>
-            <div className='flex items-center justify-between mb-4'>
-              <h2 className='text-base sm:text-lg font-semibold text-slate-900'>Assessments</h2>
-              <FiClipboard className='w-5 h-5 text-sky-600' />
+          {/* Assessments - Admin and Screening Volunteers Only */}
+          {(isAdmin || isScreeningVolunteer) && (
+            <div className='bg-white rounded-xl border border-slate-200 p-5 sm:p-6'>
+              <div className='flex items-center justify-between mb-4'>
+                <h2 className='text-base sm:text-lg font-semibold text-slate-900'>Assessments</h2>
+                <FiClipboard className='w-5 h-5 text-sky-600' />
+              </div>
+              <p className='text-sm text-slate-600 mb-4'>Record patient vitals and indicators</p>
+              <button
+                onClick={() => setIsAssessmentModalOpen(true)}
+                className='w-full px-4 py-2.5 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors cursor-pointer'
+              >
+                Record Assessment
+              </button>
             </div>
-            <p className='text-sm text-slate-600 mb-4'>Record patient vitals and indicators</p>
-            <button
-              onClick={() => setIsAssessmentModalOpen(true)}
-              className='w-full px-4 py-2.5 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors cursor-pointer'
-            >
-              Record Assessment
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
