@@ -3,14 +3,17 @@ import { FiActivity, FiDatabase, FiLogOut, FiMapPin, FiUsers, FiChevronLeft, FiC
 import { RiDashboard2Line } from 'react-icons/ri';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/auth.hooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const { isAdmin } = useAuth();
+  const queryClient = useQueryClient();
 
   const handleLogout = () => {
+    queryClient.clear();
     navigate('/login', { replace: true });
   };
 

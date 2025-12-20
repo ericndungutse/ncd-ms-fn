@@ -82,7 +82,7 @@ function QuickActionButton({ title, description, icon: Icon, onClick, color = 's
 }
 
 export default function DashboardPage() {
-  const { isAdmin, isAdmissionStaff, isScreeningVolunteer } = useAuth();
+  const { isAdmin, isAdmissionStaff, isScreeningVolunteer, user } = useAuth();
   const [searchPatientNumber, setSearchPatientNumber] = useState('');
   const [patientSearchResult, setPatientSearchResult] = useState(null);
   const [patientLoading, setPatientLoading] = useState(false);
@@ -150,12 +150,12 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8'>
+    <div className='min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8'>
       <div className='max-w-7xl mx-auto space-y-6'>
         {/* Header */}
         <div>
           <h1 className='text-3xl font-bold text-slate-900'>
-            Welcome back{useAuth().user?.firstName ? `, ${useAuth().user.firstName}` : ''}
+            Welcome back{user?.firstName ? `, ${user.firstName}` : ''}
           </h1>
           <p className='text-slate-600 mt-1'>Here's what's happening with your healthcare system today</p>
         </div>

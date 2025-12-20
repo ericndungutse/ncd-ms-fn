@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { FiLogOut, FiChevronDown } from 'react-icons/fi';
+import { queryClient } from '../../main';
 
 export default function DashboardHeader({ user }) {
   const navigate = useNavigate();
@@ -27,9 +28,7 @@ export default function DashboardHeader({ user }) {
   }, []);
 
   const handleLogout = () => {
-    try {
-      localStorage.removeItem('token');
-    } catch (_) {}
+    queryClient.clear();
     navigate('/login', { replace: true });
   };
 
