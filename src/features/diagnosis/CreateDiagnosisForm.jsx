@@ -12,6 +12,7 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
   const [patientProfile, setPatientProfile] = useState(null);
   const [searchError, setSearchError] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [selectedIndicators, setSelectedIndicators] = useState([]);
 
   const { data: indicators } = useFetchIndicators();
@@ -33,6 +34,7 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
   const { mutate: submitDiagnosis, isPending } = useMutation({
     mutationFn: createDiagnosis,
     onSuccess: () => {
+      setSubmitError('');
       if (isModal) {
         reset();
         setPatientProfile(null);
@@ -41,6 +43,9 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
       }
     },
     onError: (error) => {
+      // Use getErrorMessage utility if available
+      let message = error?.response?.data?.message || 'Failed to create diagnosis.';
+      setSubmitError(message);
       console.error('Failed to create diagnosis:', error);
     },
   });
@@ -76,6 +81,7 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
   };
 
   const onSubmit = () => {
+    setSubmitError('');
     if (!patientProfile) {
       setSearchError('Please search for a patient first');
       return;
@@ -107,6 +113,11 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-5 sm:space-y-6'>
+          {submitError && (
+            <div className='bg-rose-50 border border-rose-200 text-rose-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm mb-2'>
+              {submitError}
+            </div>
+          )}
           {/* Patient Search */}
           <div className='space-y-3 sm:space-y-4'>
             <h3 className='text-sm sm:text-base font-semibold text-slate-900'>Patient Information</h3>
