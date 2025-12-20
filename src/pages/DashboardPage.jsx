@@ -20,6 +20,7 @@ import { getProfileByPatientNumber } from '../service/assessments.service';
 import { getDiagnosisByPatientNumber } from '../service/diagnosis.service';
 import { getErrorMessage } from '../utils/axios.utils';
 import { useAuth } from '../features/auth/auth.hooks';
+import AdminDashboard from '../features/dashboard/AdminDashboard';
 
 function StatCard({ title, value, icon: Icon, trend, color = 'sky' }) {
   const colorClasses = {
@@ -97,6 +98,10 @@ export default function DashboardPage() {
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [isDiagnosisModalOpen, setIsDiagnosisModalOpen] = useState(false);
 
+  if (isAdmin) {
+    return <AdminDashboard />;
+  }
+
   const handleSearchPatient = async (event) => {
     event.preventDefault();
     const trimmed = searchPatientNumber.trim();
@@ -150,7 +155,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className='min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8'>
+    <div className='min-h-screenp-4 sm:p-6 lg:p-8'>
       <div className='max-w-7xl mx-auto space-y-6'>
         {/* Header */}
         <div>
