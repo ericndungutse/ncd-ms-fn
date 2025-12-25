@@ -1,66 +1,84 @@
-import Badge from '../../ui/Badge';
-import { FiActivity, FiMapPin, FiDatabase } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiActivity, FiClipboard, FiDatabase, FiMapPin, FiUserPlus } from 'react-icons/fi';
+import { QuickActionButton } from './QuickActionButton';
+import { RegisterUserForm } from '../users';
+import Modal from '../../ui/Modal';
+import { RecordAssessmentForm } from '../assessments';
+import CreateDiagnosisForm from '../diagnosis/CreateDiagnosisForm';
+import RequireRole from '../../ui/RequireRole';
 
 export default function QuickActionsSection() {
-  const actions = [
-    {
-      title: 'Record Assessment',
-      endpoint: 'POST /api/v1/assessments',
-      icon: FiActivity,
-      color: 'emerald',
-    },
-    {
-      title: 'Create Campaign',
-      endpoint: 'POST /api/v1/screening-campaigns',
-      icon: FiMapPin,
-      color: 'amber',
-    },
-    {
-      title: 'View Indicators',
-      endpoint: 'GET /api/v1/indicators',
-      icon: FiDatabase,
-      color: 'rose',
-    },
-  ];
-
-  const getColorClasses = (color) => {
-    const colors = {
-      emerald: 'bg-emerald-50 text-emerald-700',
-      amber: 'bg-amber-50 text-amber-700',
-      rose: 'bg-rose-50 text-rose-700',
-    };
-    return colors[color];
-  };
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [isDiagnosisModalOpen, setIsDiagnosisModalOpen] = useState(false);
 
   return (
-    <section className='surface-card p-5 border border-slate-200'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h3 className='text-lg font-semibold text-slate-900 mb-1'>Quick actions</h3>
-          <p className='text-sm text-slate-500'>Jump into the most common workflows</p>
-        </div>
-        <Badge>API endpoints</Badge>
+    <section className='bg-white rounded-xl border border-slate-200 p-5'>
+      <h2 className='text-lg font-semibold text-slate-900 mb-4'>Quick Actions</h2>
+      <div className='space-y-3'>
+        <QuickActionButton
+          title='Register Patient'
+          description='Add new patient record'
+          icon={FiUserPlus}
+          onClick={() => setIsUserModalOpen(true)}
+          color='blue'
+        />
+        <QuickActionButton
+          title='Create Diagnosis'
+          description='Assign required assessments'
+          icon={FiActivity}
+          onClick={() => setIsDiagnosisModalOpen(true)}
+          color='emerald'
+        />
+
+        <RequireRole allowedRoles={['screening volunteer']}>
+          <QuickActionButton
+            title='Record Assessment'
+            description='Capture patient vitals'
+            icon={FiClipboard}
+            onClick={() => setIsAssessmentModalOpen(true)}
+            color='sky'
+          />
+        </RequireRole>
       </div>
-      <div className='mt-4 grid gap-3 md:grid-cols-3'>
-        {actions.map((action) => (
-          <div
-            key={action.endpoint}
-            className='flex items-center gap-3 rounded border border-slate-200 bg-white px-4 py-3'
-          >
-            <div
-              className={`flex h-9 w-9 items-center justify-center rounded ${getColorClasses(
-                action.color
-              )}`}
-            >
-              <action.icon />
-            </div>
-            <div className='flex-1'>
-              <p className='text-sm font-semibold text-slate-900'>{action.title}</p>
-              <p className='text-xs text-slate-500'>{action.endpoint}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Modals */}
+      <Modal
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        title='Register user'
+        description='Create a new user account'
+        size='xl'
+      >
+        <RegisterUserForm
+          mode='modal'
+          onSuccess={() => setIsUserModalOpen(false)}
+          onCancel={() => setIsUserModalOpen(false)}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={isAssessmentModalOpen}
+        onClose={() => setIsAssessmentModalOpen(false)}
+        title='Record assessment'
+        description='Search diagnosis and record pending indicators'
+        size='lg'
+      >
+        <RecordAssessmentForm onSuccess={() => setIsAssessmentModalOpen(false)} />
+      </Modal>
+
+      <Modal
+        isOpen={isDiagnosisModalOpen}
+        onClose={() => setIsDiagnosisModalOpen(false)}
+        title='Create diagnosis'
+        description='Create a diagnosis for a patient'
+        size='lg'
+      >
+        <CreateDiagnosisForm
+          mode='modal'
+          onSuccess={() => setIsDiagnosisModalOpen(false)}
+          onCancel={() => setIsDiagnosisModalOpen(false)}
+        />
+      </Modal>
     </section>
   );
 }

@@ -366,7 +366,7 @@ export default function AdminDashboard() {
                   {activeCampaigns.map((c) => (
                     <div
                       key={c.campaignId}
-                      className='group rounded-lg border border-gray-200 bg-gradient-to-br from-emerald-50 to-white p-4 transition-all hover:border-emerald-300 hover:shadow-md'
+                      className='group rounded-lg border border-gray-200 bg-linear-to-br from-emerald-50 to-white p-4 transition-all hover:border-emerald-300 hover:shadow-md'
                     >
                       <div className='flex items-start justify-between'>
                         <div className='flex-1'>
@@ -381,7 +381,7 @@ export default function AdminDashboard() {
                             </div>
                             <div className='mt-2 h-2 overflow-hidden rounded-full bg-gray-200'>
                               <div
-                                className='h-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all'
+                                className='h-full bg-linear-to-r from-emerald-500 to-emerald-600 transition-all'
                                 style={{ width: `${c.progress}%` }}
                               />
                             </div>
@@ -406,7 +406,7 @@ export default function AdminDashboard() {
                   {upcomingCampaigns.map((c) => (
                     <div
                       key={c.campaignId}
-                      className='group rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50 to-white p-4 transition-all hover:border-blue-300 hover:shadow-md'
+                      className='group rounded-lg border border-gray-200 bg-linear-to-br from-blue-50 to-white p-4 transition-all hover:border-blue-300 hover:shadow-md'
                     >
                       <div className='flex items-start justify-between'>
                         <div>
