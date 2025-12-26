@@ -13,7 +13,12 @@ export const queryClient = new QueryClient({
     },
   },
 });
-createRoot(document.getElementById('root')).render(
+
+// Ensure only one root is created
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ReactQueryDevtools initialIsOpen={false} />
@@ -30,24 +35,8 @@ createRoot(document.getElementById('root')).render(
             lineHeight: '20px',
             fontWeight: 500,
           },
-          success: {
-            iconTheme: {
-              primary: '#0ea5e9',
-              secondary: '#e0f2fe',
-            },
-            style: {
-              borderColor: '#bae6fd',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#f43f5e',
-              secondary: '#fee2e2',
-            },
-            style: {
-              borderColor: '#fecdd3',
-            },
-          },
+          success: { style: { borderColor: '#bae6fd' } },
+          error: { style: { borderColor: '#fecdd3' } },
         }}
       />
       <BrowserRouter>

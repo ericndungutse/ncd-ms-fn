@@ -17,4 +17,18 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle 401 responses globally
+apiClient.interceptors.response.use(
+  (response) => response, // return response if successful
+  (error) => {
+    if (error.response?.status === 401) {
+      // Optional: clear user data
+      queryClient.clear();
+      // Optional: redirect to login page
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default apiClient;

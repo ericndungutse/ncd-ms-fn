@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { FiActivity, FiDatabase, FiLogOut, FiMapPin, FiUsers, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiActivity, FiDatabase, FiLogOut, FiMapPin, FiUsers } from 'react-icons/fi';
 import { RiDashboard2Line } from 'react-icons/ri';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../auth/auth.hooks';
 import { useQueryClient } from '@tanstack/react-query';
+import RequireRole from '../../ui/RequireRole';
 
 export default function Sidebar() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
 
   const handleLogout = () => {
@@ -17,21 +16,10 @@ export default function Sidebar() {
     navigate('/login', { replace: true });
   };
 
-  const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: RiDashboard2Line, show: true },
-    { path: '/assessments', label: 'Assessments', icon: FiActivity, show: isAdmin },
-    // { path: '/assessments/record', label: 'Record Assessment', icon: FiActivity, show: true },
-    { path: '/campaigns', label: 'Campaigns', icon: FiMapPin, show: true },
-    // { path: '/campaigns/create', label: 'Create Campaign', icon: FiMapPin, show: true },
-    { path: '/indicators', label: 'Indicators', icon: FiDatabase, show: true },
-    { path: '/users', label: 'Users', icon: FiUsers, show: isAdmin },
-  ];
-
-  const visibleNavItems = navItems.filter((item) => item.show);
-
   const isActive = (path) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
+
   return (
     <aside
       className={`${
@@ -47,7 +35,6 @@ export default function Sidebar() {
               </div>
               <div>
                 <h1 className='text-lg font-semibold text-slate-900 tracking-tight'>eRINDE AI</h1>
-                {/* <p className='text-xs text-slate-500 leading-tight'>Management System</p> */}
               </div>
             </div>
           ) : (
@@ -59,29 +46,112 @@ export default function Sidebar() {
       </div>
 
       <nav className='flex-1 space-y-1 px-3'>
-        {visibleNavItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            aria-current={isActive(item.path) ? 'page' : undefined}
-            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-              isActive(item.path) ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+        <Link
+          to='/dashboard'
+          aria-current={isActive('/dashboard') ? 'page' : undefined}
+          className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive('/dashboard') ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+          title={!sidebarOpen ? 'Dashboard' : ''}
+        >
+          {isActive('/dashboard') && (
+            <span className='absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-600'></span>
+          )}
+          <div
+            className={`p-1.5 rounded transition-colors ${
+              isActive('/dashboard') ? 'bg-sky-100 text-sky-700' : 'text-slate-500 group-hover:text-slate-700'
             }`}
-            title={!sidebarOpen ? item.label : ''}
           >
-            {isActive(item.path) && (
-              <span className='absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-600'></span>
-            )}
+            <RiDashboard2Line className='h-5 w-5 shrink-0' />
+          </div>
+          {sidebarOpen && <span>Dashboard</span>}
+        </Link>
+
+        <Link
+          to='/assessments'
+          aria-current={isActive('/assessments') ? 'page' : undefined}
+          className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive('/assessments')
+              ? 'bg-sky-50 text-sky-700'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+          title={!sidebarOpen ? 'Assessments' : ''}
+        >
+          {isActive('/assessments') && (
+            <span className='absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-600'></span>
+          )}
+          <div
+            className={`p-1.5 rounded transition-colors ${
+              isActive('/assessments') ? 'bg-sky-100 text-sky-700' : 'text-slate-500 group-hover:text-slate-700'
+            }`}
+          >
+            <FiActivity className='h-5 w-5 shrink-0' />
+          </div>
+          {sidebarOpen && <span>Assessments</span>}
+        </Link>
+
+        <Link
+          to='/campaigns'
+          aria-current={isActive('/campaigns') ? 'page' : undefined}
+          className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive('/campaigns') ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+          title={!sidebarOpen ? 'Campaigns' : ''}
+        >
+          {isActive('/campaigns') && (
+            <span className='absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-600'></span>
+          )}
+          <div
+            className={`p-1.5 rounded transition-colors ${
+              isActive('/campaigns') ? 'bg-sky-100 text-sky-700' : 'text-slate-500 group-hover:text-slate-700'
+            }`}
+          >
+            <FiMapPin className='h-5 w-5 shrink-0' />
+          </div>
+          {sidebarOpen && <span>Campaigns</span>}
+        </Link>
+
+        <Link
+          to='/indicators'
+          aria-current={isActive('/indicators') ? 'page' : undefined}
+          className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isActive('/indicators') ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+          title={!sidebarOpen ? 'Indicators' : ''}
+        >
+          {isActive('/indicators') && (
+            <span className='absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-600'></span>
+          )}
+          <div
+            className={`p-1.5 rounded transition-colors ${
+              isActive('/indicators') ? 'bg-sky-100 text-sky-700' : 'text-slate-500 group-hover:text-slate-700'
+            }`}
+          >
+            <FiDatabase className='h-5 w-5 shrink-0' />
+          </div>
+          {sidebarOpen && <span>Indicators</span>}
+        </Link>
+
+        <RequireRole allowedRoles={['admin']}>
+          <Link
+            to='/users'
+            aria-current={isActive('/users') ? 'page' : undefined}
+            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              isActive('/users') ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+            title={!sidebarOpen ? 'Users' : ''}
+          >
+            {isActive('/users') && <span className='absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-600'></span>}
             <div
               className={`p-1.5 rounded transition-colors ${
-                isActive(item.path) ? 'bg-sky-100 text-sky-700' : 'text-slate-500 group-hover:text-slate-700'
+                isActive('/users') ? 'bg-sky-100 text-sky-700' : 'text-slate-500 group-hover:text-slate-700'
               }`}
             >
-              <item.icon className='h-5 w-5 shrink-0' />
+              <FiUsers className='h-5 w-5 shrink-0' />
             </div>
-            {sidebarOpen && <span className='transition-colors'>{item.label}</span>}
+            {sidebarOpen && <span>Users</span>}
           </Link>
-        ))}
+        </RequireRole>
       </nav>
 
       <div className='space-y-3 border-t border-slate-100 p-3'>

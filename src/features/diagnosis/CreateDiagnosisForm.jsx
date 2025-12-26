@@ -6,6 +6,7 @@ import { useFetchIndicators } from '../indicators/indicators.queries';
 import { getProfileByPatientNumber } from '../../service/assessments.service';
 import { createDiagnosis } from '../../service/diagnosis.service';
 import FormInput from '../../ui/FormInput';
+import toast from 'react-hot-toast';
 
 export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel }) {
   const isModal = mode === 'modal';
@@ -34,6 +35,7 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
   const { mutate: submitDiagnosis, isPending } = useMutation({
     mutationFn: createDiagnosis,
     onSuccess: () => {
+      toast.success('Diagnosis created successfully!');
       setSubmitError('');
       if (isModal) {
         reset();
@@ -159,7 +161,6 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
                     {patientProfile.firstName} {patientProfile.lastName}
                   </p>
                   <p className='text-emerald-700'>Patient Number: {patientProfile.patientNumber}</p>
-                  <p className='text-emerald-700'>Date of Birth: {patientProfile.dateOfBirth}</p>
                 </div>
               </div>
             )}

@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import { getUsers, registerUser } from '../../service/users.service';
 import { getErrorMessage, getResponseData } from '../../utils/axios.utils';
 
@@ -20,7 +19,6 @@ export function useFetchUsers(params = {}) {
 }
 
 export function useRegisterUser() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const {
@@ -35,9 +33,6 @@ export function useRegisterUser() {
 
       // Invalidate users query to refetch the list
       queryClient.invalidateQueries({ queryKey: ['users'] });
-
-      // Navigate back to users list
-      navigate('/users', { replace: true });
 
       // Show success message
       toast.success(message || 'User registered successfully!');
