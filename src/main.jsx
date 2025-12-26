@@ -6,13 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import App from './App.jsx';
 import { BrowserRouter } from 'react-router-dom';
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 0,
-    },
-  },
-});
+export const queryClient = new QueryClient({});
 
 // Ensure only one root is created
 const container = document.getElementById('root');

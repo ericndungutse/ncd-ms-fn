@@ -24,7 +24,7 @@ export default function QuickActionsSection() {
           color='blue'
         />
         <QuickActionButton
-          title='Create Diagnosis'
+          title='Create Screening'
           description='Assign required assessments'
           icon={FiActivity}
           onClick={() => setIsDiagnosisModalOpen(true)}
@@ -69,8 +69,8 @@ export default function QuickActionsSection() {
       <Modal
         isOpen={isDiagnosisModalOpen}
         onClose={() => setIsDiagnosisModalOpen(false)}
-        title='Create diagnosis'
-        description='Create a diagnosis for a patient'
+        title='Create Screening'
+        description='Create a screening for a patient'
         size='lg'
       >
         <CreateDiagnosisForm

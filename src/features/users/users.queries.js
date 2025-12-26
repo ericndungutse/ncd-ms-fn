@@ -34,6 +34,8 @@ export function useRegisterUser() {
       // Invalidate users query to refetch the list
       queryClient.invalidateQueries({ queryKey: ['users'] });
 
+      alert(`User registered successfully! Patient Number: ${response.data.data.profile.patientNumber}`);
+
       // Show success message
       toast.success(message || 'User registered successfully!');
     },

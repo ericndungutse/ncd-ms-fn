@@ -35,7 +35,7 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
   const { mutate: submitDiagnosis, isPending } = useMutation({
     mutationFn: createDiagnosis,
     onSuccess: () => {
-      toast.success('Diagnosis created successfully!');
+      toast.success('Screening created successfully!');
       setSubmitError('');
       if (isModal) {
         reset();
@@ -46,9 +46,9 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
     },
     onError: (error) => {
       // Use getErrorMessage utility if available
-      let message = error?.response?.data?.message || 'Failed to create diagnosis.';
+      let message = error?.response?.data?.message || 'Failed to create screening.';
       setSubmitError(message);
-      console.error('Failed to create diagnosis:', error);
+      console.error('Failed to create screening:', error);
     },
   });
 
@@ -109,7 +109,7 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
       <div className={isModal ? '' : 'max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-5 sm:p-6'}>
         {!isModal && (
           <div className='mb-5 sm:mb-6'>
-            <h1 className='text-xl sm:text-2xl font-bold text-slate-900'>Create Diagnosis</h1>
+            <h1 className='text-xl sm:text-2xl font-bold text-slate-900'>Create Screening</h1>
             <p className='text-xs sm:text-sm text-slate-600 mt-1'>Search patient and assign required assessments</p>
           </div>
         )}
@@ -219,7 +219,7 @@ export default function CreateDiagnosisForm({ mode = 'page', onSuccess, onCancel
               disabled={isPending || !patientProfile || selectedIndicators.length === 0}
               className='flex-1 rounded-lg bg-sky-700 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-white hover:bg-sky-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all cursor-pointer'
             >
-              {isPending ? 'Creating Diagnosis...' : 'Create Diagnosis'}
+              {isPending ? 'Creating Screening...' : 'Create Screening'}
             </button>
             <button
               type='button'

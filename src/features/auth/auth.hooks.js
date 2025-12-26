@@ -1,16 +1,17 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useUser = () => {
-  const queryClient = useQueryClient();
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => null,
+    enabled: false,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
 
-  // Attempt to get the cached 'user' query
-  const user = queryClient.getQueryData(['user']);
-
-  console.log('Fetched user from cache:', user);
-
-  return user;
+  // data will contain { token, user } as set in your login mutation
+  return { user: data?.user, token: data?.token, isLoading, error };
 };
-
 export const useAuth = () => {
   const queryClient = useQueryClient();
   const user = queryClient.getQueryData(['user']);

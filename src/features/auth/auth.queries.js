@@ -20,7 +20,16 @@ export function useLogin() {
         message,
         data: { token, user },
       } = getResponseData(response);
-      queryClient.setQueryData(['user'], { token: token, user: user });
+
+      // 1. Set the data (only 2 arguments)
+      queryClient.setQueryData(['user'], { token, user });
+
+      // 2. Set the behavior defaults for this specific key
+      queryClient.setQueryDefaults(['user'], {
+        staleTime: Infinity,
+        gcTime: Infinity, // This prevents it from being deleted after 5 mins
+      });
+
       navigate('/dashboard', { replace: true });
       toast.success(message);
     },

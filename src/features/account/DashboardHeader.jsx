@@ -2,11 +2,15 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { FiLogOut, FiChevronDown } from 'react-icons/fi';
 import { queryClient } from '../../main';
+import { useUser } from '../auth/auth.hooks';
 
-export default function DashboardHeader({ user }) {
+export default function DashboardHeader() {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const {
+    user: { username },
+  } = useUser();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -44,8 +48,7 @@ export default function DashboardHeader({ user }) {
           className='flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer'
         >
           <div className='text-right'>
-            <p className='text-sm font-medium text-slate-900'>{user?.name || 'User'}</p>
-            <p className='text-xs text-slate-500'>{user?.role || 'Role'}</p>
+            <p className='text-sm font-medium text-slate-900'>{username || 'User'}</p>
           </div>
           <FiChevronDown
             className={`h-4 w-4 text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}

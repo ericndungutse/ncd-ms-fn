@@ -25,7 +25,10 @@ export default function RecordAssessmentForm({ onSuccess }) {
     // For other readings, convert to snake_case
     const key = reading?.key || makeKey(label);
     // Convert camelCase to snake_case (e.g., randomBloodGlucose -> random_blood_glucose)
-    return key.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+    return key
+      .replace(/([A-Z])/g, '_$1')
+      .toLowerCase()
+      .replace(/^_/, '');
   };
 
   const getReadingBounds = (key, unit) => {
@@ -61,12 +64,6 @@ export default function RecordAssessmentForm({ onSuccess }) {
   const { createAssessment, isPending } = useCreateAssessment();
   const { data: indicators } = useFetchIndicators({ fields: 'name,readings' });
   const { data: campaignsRaw } = useFetchCampaigns();
-
-  // Fetch profile when patient number is entered
-  // Legacy profile search removed; we rely solely on diagnosis lookup
-  const isLoadingProfile = false;
-  const profile = null;
-  const profileError = null;
 
   // Compute selected indicator
   const selectedIndicator = useMemo(() => {
@@ -110,13 +107,13 @@ export default function RecordAssessmentForm({ onSuccess }) {
 
       // Search for diagnosis only
       const response = await getDiagnosisByPatientNumber(trimmed);
-      const diagnosis = response?.data?.data?.diagnosis || response?.data?.diagnosis || response?.data;
+      const screening = response?.data?.data?.screening || response?.data?.screening || response?.data;
 
-      if (diagnosis) {
-        setDiagnosisData(diagnosis);
+      if (screening) {
+        setDiagnosisData(screening);
         // Check if all required assessments are taken
-        const allTaken = diagnosis.requiredAssessments?.every((a) => a.taken) ?? false;
-        if (allTaken && diagnosis.requiredAssessments?.length > 0) {
+        const allTaken = screening.requiredAssessments?.every((a) => a.taken) ?? false;
+        if (allTaken && screening.requiredAssessments?.length > 0) {
           setDiagnosisError(
             'All required assessments for this diagnosis have been completed. Cannot record additional assessments.'
           );
@@ -260,7 +257,7 @@ export default function RecordAssessmentForm({ onSuccess }) {
               disabled={!patientNumberInput.trim() || diagnosisLoading}
               className='px-4 py-3 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium'
             >
-              {diagnosisLoading ? 'Checking Diagnosis...' : 'Search Diagnosis'}
+              {diagnosisLoading ? 'Checking Diagnosis...' : 'Search Screening'}
             </button>
           </div>
         </div>
@@ -306,12 +303,12 @@ export default function RecordAssessmentForm({ onSuccess }) {
         {/* Diagnosis Info Display */}
         {diagnosisData && profileSearched && (
           <div className='p-4 bg-emerald-50 border border-emerald-200 rounded-lg'>
-            <p className='text-sm font-semibold text-emerald-900 mb-2'>Diagnosis Found:</p>
+            <p className='text-sm font-semibold text-emerald-900 mb-2'>Screening Found:</p>
             <div className='grid grid-cols-2 gap-2 text-sm'>
               <div>
                 <span className='text-emerald-700'>Patient:</span>{' '}
                 <span className='font-medium text-emerald-900'>
-                  {diagnosisData.profileId?.firstName} {diagnosisData.profileId?.lastName}
+                  {diagnosisData.profile?.firstName} {diagnosisData.profile?.lastName}
                 </span>
               </div>
               <div>
@@ -402,7 +399,9 @@ export default function RecordAssessmentForm({ onSuccess }) {
                     const fieldKey = `reading_${readingKey}`;
                     const bounds = getReadingBounds(readingKey, reading.unit);
                     const unit = reading.unit ? ` (${reading.unit})` : '';
-                    const placeholder = `Enter ${(readingLabel || '').toLowerCase()}${unit ? ` in ${reading.unit}` : ''}`;
+                    const placeholder = `Enter ${(readingLabel || '').toLowerCase()}${
+                      unit ? ` in ${reading.unit}` : ''
+                    }`;
                     return (
                       <FormInput
                         key={fieldKey}
@@ -434,9 +433,7 @@ export default function RecordAssessmentForm({ onSuccess }) {
 
           {/* Submit error alert */}
           {submitError && (
-            <div className='rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800'>
-              {submitError}
-            </div>
+            <div className='rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800'>{submitError}</div>
           )}
 
           {/* Submit Button */}

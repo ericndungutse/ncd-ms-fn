@@ -67,28 +67,30 @@ export default function Sidebar() {
           {sidebarOpen && <span>Dashboard</span>}
         </Link>
 
-        <Link
-          to='/assessments'
-          aria-current={isActive('/assessments') ? 'page' : undefined}
-          className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-            isActive('/assessments')
-              ? 'bg-sky-50 text-sky-700'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-          }`}
-          title={!sidebarOpen ? 'Assessments' : ''}
-        >
-          {isActive('/assessments') && (
-            <span className='absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-600'></span>
-          )}
-          <div
-            className={`p-1.5 rounded transition-colors ${
-              isActive('/assessments') ? 'bg-sky-100 text-sky-700' : 'text-slate-500 group-hover:text-slate-700'
+        <RequireRole allowedRoles={['admin']}>
+          <Link
+            to='/assessments'
+            aria-current={isActive('/assessments') ? 'page' : undefined}
+            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              isActive('/assessments')
+                ? 'bg-sky-50 text-sky-700'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
+            title={!sidebarOpen ? 'Assessments' : ''}
           >
-            <FiActivity className='h-5 w-5 shrink-0' />
-          </div>
-          {sidebarOpen && <span>Assessments</span>}
-        </Link>
+            {isActive('/assessments') && (
+              <span className='absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-600'></span>
+            )}
+            <div
+              className={`p-1.5 rounded transition-colors ${
+                isActive('/assessments') ? 'bg-sky-100 text-sky-700' : 'text-slate-500 group-hover:text-slate-700'
+              }`}
+            >
+              <FiActivity className='h-5 w-5 shrink-0' />
+            </div>
+            {sidebarOpen && <span>Assessments</span>}
+          </Link>
+        </RequireRole>
 
         <Link
           to='/campaigns'

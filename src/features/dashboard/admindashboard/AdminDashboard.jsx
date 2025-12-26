@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, trend, color }) => (
-  <div className='group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-lg hover:border-gray-300'>
+  <div className='group relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-lg hover:border-gray-300'>
     <div className='flex items-start justify-between'>
       <div className='flex-1 space-y-2'>
         <p className='text-sm font-medium text-gray-600'>{title}</p>

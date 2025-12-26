@@ -24,7 +24,7 @@ export default function AssessmentsList() {
 
   if (isLoading) {
     return (
-      <div className='rounded-lg border border-slate-200 bg-white overflow-hidden'>
+      <div className='rounded-lg border border-slate-200 bg-white'>
         <div className='h-96 flex items-center justify-center'>
           <div className='text-center'>
             <div className='inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-sky-600 border-r-transparent mb-2'></div>
@@ -40,7 +40,7 @@ export default function AssessmentsList() {
   }
 
   return (
-    <div className='rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm'>
+    <div className='rounded-lg border border-slate-200 bg-white shadow-sm'>
       <div className='overflow-x-auto'>
         <table className='min-w-full divide-y divide-slate-200'>
           <thead className='bg-slate-50'>

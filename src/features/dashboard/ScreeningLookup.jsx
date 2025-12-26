@@ -5,34 +5,35 @@ import FormInput from '../../ui/FormInput';
 import { getErrorMessage } from '../../utils/axios.utils';
 
 export default function ScreeningLookup() {
-  const [searchDiagnosisNumber, setSearchDiagnosisNumber] = useState('');
-  const [diagnosisSearchResult, setDiagnosisSearchResult] = useState(null);
-  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
-  const [diagnosisError, setDiagnosisError] = useState('');
-  const [diagnosisData, setDiagnosisData] = useState(null);
-  const handleSearchDiagnosis = async (event) => {
+  const [searchScreeningNumber, setSearchScreeningNumber] = useState('');
+  const [screeningSearchResult, setScreeningSearchResult] = useState(null);
+  const [screeningLoading, setScreeningLoading] = useState(false);
+  const [screeningError, setScreeningError] = useState('');
+  const [screeningData, setScreeningData] = useState(null);
+  const handleSearchScreening = async (event) => {
     event.preventDefault();
-    const trimmed = searchDiagnosisNumber.trim();
+    const trimmed = searchScreeningNumber.trim();
     if (!trimmed) {
-      setDiagnosisSearchResult({ patientNumber: '', status: 'empty' });
-      setDiagnosisData(null);
-      setDiagnosisError('');
+      setScreeningSearchResult({ patientNumber: '', status: 'empty' });
+      setScreeningData(null);
+      setScreeningError('');
       return;
     }
     try {
-      setDiagnosisLoading(true);
-      setDiagnosisError('');
-      setDiagnosisData(null);
+      setScreeningLoading(true);
+      setScreeningError('');
+      setScreeningData(null);
       const response = await getDiagnosisByPatientNumber(trimmed);
-      const data = response?.data?.data?.diagnosis || response?.data?.diagnosis || response?.data;
-      setDiagnosisData(data || null);
-      setDiagnosisSearchResult({ patientNumber: trimmed, status: 'searched' });
+
+      const data = response?.data?.data?.screening || response?.data?.screening || response?.data;
+      setScreeningData(data || null);
+      setScreeningSearchResult({ patientNumber: trimmed, status: 'searched' });
     } catch (err) {
-      setDiagnosisError(getErrorMessage(err));
-      setDiagnosisData(null);
-      setDiagnosisSearchResult({ patientNumber: trimmed, status: 'searched' });
+      setScreeningError(getErrorMessage(err));
+      setScreeningData(null);
+      setScreeningSearchResult({ patientNumber: trimmed, status: 'searched' });
     } finally {
-      setDiagnosisLoading(false);
+      setScreeningLoading(false);
     }
   };
   return (
@@ -42,70 +43,70 @@ export default function ScreeningLookup() {
           <FiActivity className='w-5 h-5 text-emerald-600' />
         </div>
         <div>
-          <h2 className='text-lg font-semibold text-slate-900'>Diagnosis Lookup</h2>
-          <p className='text-sm text-slate-600'>View patient diagnosis details</p>
+          <h2 className='text-lg font-semibold text-slate-900'>Screening Lookup</h2>
+          <p className='text-sm text-slate-600'>View patient screening details</p>
         </div>
       </div>
 
-      <form onSubmit={handleSearchDiagnosis} className='space-y-4'>
+      <form onSubmit={handleSearchScreening} className='space-y-4'>
         <FormInput
-          value={searchDiagnosisNumber}
-          onChange={(e) => setSearchDiagnosisNumber(e.target.value)}
+          value={searchScreeningNumber}
+          onChange={(e) => setSearchScreeningNumber(e.target.value)}
           placeholder='Enter patient number'
         />
         <button
           type='submit'
-          disabled={diagnosisLoading}
+          disabled={screeningLoading}
           className='w-full px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
         >
-          {diagnosisLoading ? 'Searching...' : 'Search Diagnosis'}
+          {screeningLoading ? 'Searching...' : 'Search Screening'}
         </button>
       </form>
 
-      {diagnosisSearchResult?.status === 'empty' && (
+      {screeningSearchResult?.status === 'empty' && (
         <div className='mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-2'>
           <FiAlertCircle className='w-5 h-5 shrink-0 mt-0.5' />
           <span>Please enter a patient number</span>
         </div>
       )}
 
-      {diagnosisLoading && (
+      {screeningLoading && (
         <div className='mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 flex items-center gap-2'>
           <FiLoader className='w-5 h-5 shrink-0 animate-spin' />
-          <span>Searching for diagnosis...</span>
+          <span>Searching for screening...</span>
         </div>
       )}
 
-      {!diagnosisLoading && diagnosisError && (
+      {!screeningLoading && screeningError && (
         <div className='mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 flex items-start gap-2'>
           <FiAlertCircle className='w-5 h-5 shrink-0 mt-0.5' />
-          <span>{diagnosisError}</span>
+          <span>{screeningError}</span>
         </div>
       )}
 
-      {!diagnosisLoading && diagnosisData && (
+      {!screeningLoading && screeningData && (
         <div className='mt-4 bg-linear-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-5'>
           <div className='flex items-start justify-between mb-4'>
             <div>
-              {diagnosisData.profileId && (
+              {screeningData.profileId && (
                 <h3 className='text-lg font-bold text-slate-900'>
-                  {diagnosisData.profileId.firstName} {diagnosisData.profileId.lastName}
+                  {screeningData.profileId.firstName} {screeningData.profileId.lastName}
                 </h3>
               )}
-              <p className='text-sm text-slate-600'>Patient #{diagnosisData.patientNumber}</p>
+              <p className='text-sm text-slate-600'>Patient #{screeningData.patientNumber}</p>
             </div>
-            {diagnosisData.status && (
+            {screeningData.status && (
               <span className='px-3 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-full capitalize'>
-                {diagnosisData.status}
+                {screeningData.status}
               </span>
             )}
           </div>
 
-          {diagnosisData.requiredAssessments && diagnosisData.requiredAssessments.length > 0 && (
+          {screeningData.requiredAssessments && screeningData.requiredAssessments.length > 0 && (
             <div>
               <h4 className='text-sm font-semibold text-slate-900 mb-3'>Required Assessments</h4>
               <div className='space-y-2'>
-                {diagnosisData.requiredAssessments.map((assessment, idx) => (
+                {screeningData.requiredAssessments.map((assessment, idx) => (
                   <div key={idx} className='bg-white rounded-lg p-3 border border-emerald-100'>
                     <div className='flex justify-between items-start mb-2'>
                       <span className='font-medium text-slate-900 text-sm'>
